@@ -20,3 +20,5 @@ class Window(arcade.Window):
         super().__init__(
             width, height, title,
             gl_version=gl_ver)
+
+        self.center_window()
