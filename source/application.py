@@ -3,6 +3,7 @@ Application class
 """
 
 
+from time import sleep, perf_counter
 from source.window import Window
 
 
@@ -19,4 +20,8 @@ class Application:
         self.window: Window = Window(win_width, win_height, win_title)
 
     def run(self):
-        ...
+        """
+        Runs the application
+        """
+
+        self.window.run()
