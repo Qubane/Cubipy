@@ -3,25 +3,37 @@ Application class
 """
 
 
-from time import sleep, perf_counter
-from source.window import Window
+import arcade
 
 
-class Application:
+class Application(arcade.Window):
     """
-    Application class
+    Arcade application class
     """
 
     def __init__(
             self,
-            win_width: int = 1280,
-            win_height: int = 720,
-            win_title: str = "window"):
-        self.window: Window = Window(win_width, win_height, win_title)
+            width: int = 1280,
+            height: int = 720,
+            title: str = "window",
+            gl_ver: tuple[int, int] = (4, 3)):
+        
+        super().__init__(
+            width, height, title,
+            gl_version=gl_ver)
 
-    def run(self):
-        """
-        Runs the application
-        """
+        # center the window
+        self.center_window()
 
-        self.window.run()
+        # make graphs
+        arcade.enable_timings()
+        self.perf_graph_list = arcade.SpriteList()
+
+        graph = arcade.PerfGraph(200, 120, graph_data="FPS")
+        graph.position = 100, self.height - 60
+        self.perf_graph_list.append(graph)
+
+    def on_draw(self):
+        self.clear()
+
+        self.perf_graph_list.draw()
