@@ -1,10 +1,10 @@
 struct Voxel {
-    int id;
+    uint id;
 };
 
 
 uniform Voxel CHUNK_DATA[];
-uniform int CHUNK_SIZE;
+uniform uint CHUNK_SIZE;
 
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
