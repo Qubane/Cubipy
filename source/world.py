@@ -24,4 +24,9 @@ def generate_flat(level: int) -> Chunk:
     :return: chunk
     """
 
-
+    chunk = Chunk((0, 0, 0))
+    for z in range(CHUNK_SIZE):
+        for x in range(CHUNK_SIZE):
+            for y in range(0, level):
+                chunk.voxels[x][y][z] = 1
+    return chunk
