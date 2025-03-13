@@ -4,6 +4,7 @@ Application class
 
 
 import arcade
+from source.world import *
 from source.options import *
 
 
@@ -29,6 +30,9 @@ class Application(arcade.Window):
         self.shadertoy: arcade.experimental.Shadertoy | None = None
         self.load_shaders()
 
+        # temp
+        self.chunk: Chunk = generate_debug(0.2)
+
         # make graphs
         arcade.enable_timings()
         self.perf_graph_list = arcade.SpriteList()
@@ -51,6 +55,10 @@ class Application(arcade.Window):
     def on_draw(self):
         self.use()
         self.clear()
+
+        self.shadertoy.program.set_uniform_safe("CHUNK_SIZE", CHUNK_SIZE)
+        # noinspection PyTypeChecker
+        self.shadertoy.program.set_uniform_array_safe("CHUNK_DATA", self.chunk.voxels.flatten())
 
         self.shadertoy.render()
 
