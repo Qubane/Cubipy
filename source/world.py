@@ -30,3 +30,11 @@ def generate_flat(level: int) -> Chunk:
             for y in range(0, level):
                 chunk.voxels[x][y][z] = 1
     return chunk
+
+
+def generate_debug(infill: float) -> Chunk:
+    """
+    Temporary. Generates chunk with randomly placed blocks with a given infill
+    :param infill: % of space filled
+    :return: generated chunk
+    """
