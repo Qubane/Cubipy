@@ -38,3 +38,11 @@ def generate_debug(infill: float) -> Chunk:
     :param infill: % of space filled
     :return: generated chunk
     """
+
+    chunk = Chunk((0, 0, 0))
+    for z in range(CHUNK_SIZE):
+        for y in range(CHUNK_SIZE):
+            for x in range(CHUNK_SIZE):
+                if np.random.random() <= infill:
+                    chunk.voxels[z][y][x] = 1
+    return chunk
