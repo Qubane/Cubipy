@@ -11,7 +11,10 @@ class Player:
     def __init__(self, position: Vec3, rotation: Vec2, aov: float = 90):
         self.pos: Vec3 = position
         self.rot: Vec2 = rotation
-        self.fov: float = 2 * math.tan(math.radians(aov) / 2)
+        self.fov: float = 1 / math.tan(math.radians(aov) / 2)
+        
+        self.movement_speed: float = 1.8
+        self.sensitivity: float = 0.5
 
     def move(self, offset: Vec3):
         self.pos += offset
