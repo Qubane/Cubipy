@@ -101,5 +101,9 @@ class Application(arcade.Window):
             self.player.move(Vec3(-movement.x, -movement.y, 0))
         if arcade.key.D in self.keys:
             self.player.move(Vec3(movement.x, movement.y, 0))
+        if arcade.key.SPACE in self.keys:
+            self.player.move(Vec3(0, 0, delta_time * self.player.movement_speed))
+        if arcade.key.LSHIFT in self.keys or arcade.key.RSHIFT in self.keys:
+            self.player.move(Vec3(0, 0, -delta_time * self.player.movement_speed))
         if arcade.key.ESCAPE in self.keys:
             exit(0)
