@@ -9,6 +9,42 @@ struct CollisionInfo {
 
 
 uniform int CHUNK_DATA[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE];
+uniform float PLR_FOV;
+uniform vec3 PLR_POS;
+uniform vec2 PLR_DIR;
+
+
+vec3 rotate_around_x(vec3 point, float angle) {
+    vec3 temp = vec3(0);
+
+    temp.x = point.x;
+    temp.y = point.y * cos(angle) - point.z * sin(angle);
+    temp.z = point.z * cos(angle) + point.y * sin(angle);
+
+    return temp;
+}
+
+
+vec3 rotate_around_y(vec3 point, float angle) {
+    vec3 temp = vec3(0);
+
+    temp.x = point.x * cos(angle) - point.z * sin(angle);
+    temp.y = point.y;
+    temp.z = point.z * cos(angle) + point.x * sin(angle);
+
+    return temp;
+}
+
+
+vec3 rotate_around_z(vec3 point, float angle) {
+    vec3 temp = vec3(0);
+
+    temp.x = point.x * cos(angle) - point.y * sin(angle);
+    temp.y = point.y * cos(angle) + point.x * sin(angle);
+    temp.z = point.z;
+
+    return temp;
+}
 
 
 int get_voxel(ivec3 pos) {
@@ -92,9 +128,10 @@ CollisionInfo cast_ray(vec3 origin, vec3 direction) {
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = (fragCoord - iResolution.xy * 0.5f) / iResolution.y;
 
-    vec3 origin = vec3(8);
-    vec3 direction = normalize(vec3(uv.x, 0.5f, uv.y));
-    CollisionInfo casted_ray = cast_ray(origin, direction);
+    vec3 direction = normalize(vec3(uv.x, PLR_FOV, uv.y));
+    direction = rotate_around_z(rotate_around_x(direction, PLR_DIR.x), PLR_DIR.y);
+
+    CollisionInfo casted_ray = cast_ray(PLR_POS, direction);
 
     fragColor = vec4(casted_ray.dist / 48);
 }
