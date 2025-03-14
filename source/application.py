@@ -28,7 +28,7 @@ class Application(arcade.Window):
             width, height, title,
             gl_version=gl_ver)
 
-        # center the window
+        # graphics
         self.center_window()
 
         self.shadertoy: arcade.experimental.Shadertoy | None = None
@@ -50,6 +50,8 @@ class Application(arcade.Window):
 
         # controls
         self.keys: set[int] = set()
+        self.set_mouse_visible(False)
+        self.set_exclusive_mouse()
 
     def load_shaders(self):
         """
@@ -82,6 +84,9 @@ class Application(arcade.Window):
 
     def on_key_release(self, symbol: int, modifiers: int) -> EVENT_HANDLE_STATE:
         self.keys.discard(symbol)
+
+    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> EVENT_HANDLE_STATE:
+        self.player.rotate(Vec2(dy, -dx) * self.player.sensitivity)
 
     def on_update(self, delta_time: float):
         # keyboard movement
