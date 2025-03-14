@@ -90,14 +90,16 @@ class Application(arcade.Window):
 
     def on_update(self, delta_time: float):
         # keyboard movement
-        looking_direction: Vec2 = Vec2(math.sin(self.player.rot[1]), math.cos(self.player.rot[1]))
+        looking_direction: Vec2 = Vec2(math.cos(self.player.rot[1]), math.sin(self.player.rot[1]))
         movement = looking_direction * delta_time * self.player.movement_speed
 
         if arcade.key.W in self.keys:
-            self.player.move(Vec3(movement.x, movement.y, 0))
-        if arcade.key.S in self.keys:
-            self.player.move(Vec3(-movement.x, -movement.y, 0))
-        if arcade.key.A in self.keys:
             self.player.move(Vec3(-movement.y, movement.x, 0))
-        if arcade.key.D in self.keys:
+        if arcade.key.S in self.keys:
             self.player.move(Vec3(movement.y, -movement.x, 0))
+        if arcade.key.A in self.keys:
+            self.player.move(Vec3(-movement.x, -movement.y, 0))
+        if arcade.key.D in self.keys:
+            self.player.move(Vec3(movement.x, movement.y, 0))
+        if arcade.key.ESCAPE in self.keys:
+            exit(0)
