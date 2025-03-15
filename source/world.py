@@ -25,6 +25,12 @@ class World:
     def __init__(self):
         self.chunks: dict[int, Chunk] = {}
 
+    def add_chunk(self, chunk: Chunk) -> None:
+        """
+        Adds chunk to world
+        :param chunk: chunk to add
+        """
+
 
 def generate_flat(level: int) -> Chunk:
     """
