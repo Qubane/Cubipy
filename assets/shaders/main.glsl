@@ -1,4 +1,5 @@
 #define CHUNK_SIZE 16
+#define INDEX_MASK 255
 
 
 struct CollisionInfo {
@@ -8,7 +9,7 @@ struct CollisionInfo {
 };
 
 
-uniform int CHUNK_DATA[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE];
+uniform int CHUNK_DATA[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE / 4];
 uniform float PLR_FOV;
 uniform vec3 PLR_POS;
 uniform vec2 PLR_DIR;
@@ -51,7 +52,9 @@ int get_voxel(ivec3 pos) {
     if (pos.x > -1 && pos.x < CHUNK_SIZE &&
         pos.y > -1 && pos.y < CHUNK_SIZE &&
         pos.z > -1 && pos.z < CHUNK_SIZE) {
-        return CHUNK_DATA[pos.z * CHUNK_SIZE * CHUNK_SIZE + pos.y * CHUNK_SIZE + pos.x];
+        int index = pos.z * CHUNK_SIZE * CHUNK_SIZE + pos.y * CHUNK_SIZE + pos.x;
+        int mask_offset = (index & 3) << 3;
+        return (CHUNK_DATA[index >> 2] & (INDEX_MASK << mask_offset)) >> mask_offset;
     }
     return -1;
 }
@@ -133,5 +136,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     CollisionInfo casted_ray = cast_ray(PLR_POS, direction);
 
-    fragColor = vec4(casted_ray.dist / 48);
+    if (casted_ray.voxel_id == 1 || casted_ray.voxel_id == -1)
+        fragColor = vec4(casted_ray.dist / 48);
+    else
+        fragColor = vec4(1, 0, 0, 0);
 }
