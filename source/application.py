@@ -67,7 +67,6 @@ class Application(arcade.Window):
     # noinspection PyTypeChecker
     def on_draw(self):
         self.use()
-        self.clear()
 
         self.shadertoy.program.set_uniform_safe("CHUNK_SIZE", CHUNK_SIZE)
         self.shadertoy.program.set_uniform_safe("PLR_FOV", self.player.fov)
