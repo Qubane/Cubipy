@@ -42,11 +42,14 @@ class Application(arcade.Window):
         graph.position = 100, self.height - 60
         self.perf_graph_list.append(graph)
 
-        # temp
-        self.chunk: Chunk = generate_debug(0.1)
+        # world
+        self.world: World = World()
+        for i in range(5):
+            for j in range(5):
+                self.world.add_chunk(generate_debug((i + j + 1) / 20, (i, j, 0)))
 
         # player
-        self.player: Player = Player(Vec3(8, 8, 8), Vec2(0, 0))
+        self.player: Player = Player(Vec3(8, 8, 8), Vec2(0, 90))
 
         # controls
         self.keys: set[int] = set()
@@ -67,14 +70,19 @@ class Application(arcade.Window):
     # noinspection PyTypeChecker
     def on_draw(self):
         self.use()
+        self.clear()
 
-        self.shadertoy.program.set_uniform_safe("CHUNK_SIZE", CHUNK_SIZE)
         self.shadertoy.program.set_uniform_safe("PLR_FOV", self.player.fov)
         self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos)
         self.shadertoy.program.set_uniform_array_safe("PLR_DIR", self.player.rot)
-        self.shadertoy.program["CHUNK_DATA"] = self.chunk.voxels.flatten()
 
-        self.shadertoy.render()
+        self.shadertoy.ctx.enable(self.ctx.BLEND)
+        self.shadertoy.ctx.blend_func = (self.ctx.SRC_ALPHA, self.ctx.ONE_MINUS_SRC_ALPHA)
+
+        for _, chunk in self.world.chunks.items():
+            self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos + Vec3(*chunk.position) * 16)
+            self.shadertoy.program["CHUNK_DATA"] = chunk.voxels.flatten()
+            self.shadertoy.render()
 
         self.perf_graph_list.draw()
 
@@ -105,4 +113,4 @@ class Application(arcade.Window):
         if arcade.key.LSHIFT in self.keys or arcade.key.RSHIFT in self.keys:
             self.player.move(Vec3(0, 0, -delta_time * self.player.movement_speed))
         if arcade.key.ESCAPE in self.keys:
-            exit(0)
+            arcade.exit()
