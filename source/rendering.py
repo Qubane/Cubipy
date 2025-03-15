@@ -16,3 +16,7 @@ class ChunkManager:
 
     def __init__(self, world: World):
         self.world: World = world
+
+    def __iter__(self):
+        # temporary code
+        return self.world.chunks.__iter__()
