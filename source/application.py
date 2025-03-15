@@ -28,9 +28,10 @@ class Application(arcade.Window):
             width, height, title,
             gl_version=gl_ver)
 
-        # graphics
+        # center the window
         self.center_window()
 
+        # shader related things
         self.shadertoy: arcade.experimental.Shadertoy | None = None
         self.load_shaders()
 
@@ -38,6 +39,7 @@ class Application(arcade.Window):
         arcade.enable_timings()
         self.perf_graph_list = arcade.SpriteList()
 
+        # add fps graph
         graph = arcade.PerfGraph(200, 120, graph_data="FPS")
         graph.position = 100, self.height - 60
         self.perf_graph_list.append(graph)
@@ -45,7 +47,7 @@ class Application(arcade.Window):
         # player
         self.player: Player = Player(Vec3(8, 8, 8), Vec2(0, 90))
 
-        # controls
+        # player movement
         self.keys: set[int] = set()
         self.set_mouse_visible(False)
         self.set_exclusive_mouse()
@@ -63,28 +65,37 @@ class Application(arcade.Window):
         Loads shaders
         """
 
+        # window size
         window_size = self.get_size()
 
+        # load shaders
         self.shadertoy = arcade.experimental.Shadertoy.create_from_file(
             window_size,
             f"{SHADER_DIR}/main.glsl")
 
     # noinspection PyTypeChecker
     def on_draw(self):
-        self.use()
+        # clear buffer
         self.clear()
 
+        # set uniforms that remain the same for on_draw call
         self.shadertoy.program.set_uniform_safe("PLR_FOV", self.player.fov)
         self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos)
         self.shadertoy.program.set_uniform_array_safe("PLR_DIR", self.player.rot)
 
-        self.shadertoy.ctx.enable(self.ctx.BLEND)
+        # enable blending and depth testing
+        self.ctx.enable(self.ctx.DEPTH_TEST, self.ctx.BLEND)
 
+        # go through managed chunks and render them
         for chunk in self.world_man:
             self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos + Vec3(*chunk.position) * 16)
             self.shadertoy.program["CHUNK_DATA"] = chunk.voxels.flatten()
             self.shadertoy.render()
 
+        # disable depth testing for graphs
+        self.ctx.disable(self.ctx.DEPTH_TEST)
+
+        # draw performance graphs
         self.perf_graph_list.draw()
 
     def on_key_press(self, symbol: int, modifiers: int) -> EVENT_HANDLE_STATE:
