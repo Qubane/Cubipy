@@ -35,14 +35,15 @@ class World:
         self.chunks[name] = chunk
 
 
-def generate_flat(level: int) -> Chunk:
+def generate_flat(level: int, position: tuple[int, int, int]) -> Chunk:
     """
     Temporary. Generates a flat chunk
     :param level: sea level
+    :param position: chunk position
     :return: chunk
     """
 
-    chunk = Chunk((0, 0, 0))
+    chunk = Chunk(position)
     for y in range(CHUNK_SIZE):
         for x in range(CHUNK_SIZE):
             for z in range(0, level):
@@ -50,14 +51,15 @@ def generate_flat(level: int) -> Chunk:
     return chunk
 
 
-def generate_debug(infill: float) -> Chunk:
+def generate_debug(infill: float, position: tuple[int, int, int]) -> Chunk:
     """
     Temporary. Generates chunk with randomly placed blocks with a given infill
     :param infill: % of space filled
+    :param position: chunk position
     :return: generated chunk
     """
 
-    chunk = Chunk((0, 0, 0))
+    chunk = Chunk(position)
     for z in range(CHUNK_SIZE):
         for y in range(CHUNK_SIZE):
             for x in range(CHUNK_SIZE):
