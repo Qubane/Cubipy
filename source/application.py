@@ -10,6 +10,7 @@ from pyglet.event import EVENT_HANDLE_STATE
 from source.world import *
 from source.classes import *
 from source.options import *
+from source.rendering import *
 
 
 class Application(arcade.Window):
@@ -42,12 +43,6 @@ class Application(arcade.Window):
         graph.position = 100, self.height - 60
         self.perf_graph_list.append(graph)
 
-        # world
-        self.world: World = World()
-        for i in range(5):
-            for j in range(5):
-                self.world.add_chunk(generate_debug((i + j + 1) / 20, (i, j, 0)))
-
         # player
         self.player: Player = Player(Vec3(8, 8, 8), Vec2(0, 90))
 
@@ -55,6 +50,14 @@ class Application(arcade.Window):
         self.keys: set[int] = set()
         self.set_mouse_visible(False)
         self.set_exclusive_mouse()
+
+        # world
+        self.world: World = World()
+        for i in range(5):
+            for j in range(5):
+                self.world.add_chunk(generate_debug((i + j + 1) / 20, (i, j, 0)))
+        self.world_man: ChunkManager = ChunkManager(self.world)
+        self.world_man.player = self.player
 
     def load_shaders(self):
         """
@@ -79,7 +82,7 @@ class Application(arcade.Window):
         self.shadertoy.ctx.enable(self.ctx.BLEND)
         self.shadertoy.ctx.blend_func = (self.ctx.SRC_ALPHA, self.ctx.ONE_MINUS_SRC_ALPHA)
 
-        for _, chunk in self.world.chunks.items():
+        for _, chunk in self.world_man.__iter__():
             self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos + Vec3(*chunk.position) * 16)
             self.shadertoy.program["CHUNK_DATA"] = chunk.voxels.flatten()
             self.shadertoy.render()
