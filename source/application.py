@@ -73,7 +73,7 @@ class Application(arcade.Window):
         self.shadertoy.program.set_uniform_safe("PLR_FOV", self.player.fov)
         self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos)
         self.shadertoy.program.set_uniform_array_safe("PLR_DIR", self.player.rot)
-        self.shadertoy.program.set_uniform_array_safe("CHUNK_DATA", self.chunk.voxels.flatten())
+        self.shadertoy.program["CHUNK_DATA"] = self.chunk.voxels.flatten()
 
         self.shadertoy.render()
 
