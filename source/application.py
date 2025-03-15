@@ -5,7 +5,6 @@ Application class
 
 import math
 import arcade
-from arcade import Vec2, Vec3
 from pyglet.event import EVENT_HANDLE_STATE
 from source.world import *
 from source.classes import *
@@ -80,9 +79,8 @@ class Application(arcade.Window):
         self.shadertoy.program.set_uniform_array_safe("PLR_DIR", self.player.rot)
 
         self.shadertoy.ctx.enable(self.ctx.BLEND)
-        self.shadertoy.ctx.blend_func = (self.ctx.SRC_ALPHA, self.ctx.ONE_MINUS_SRC_ALPHA)
 
-        for chunk in self.world_man.__iter__():
+        for chunk in self.world_man:
             self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos + Vec3(*chunk.position) * 16)
             self.shadertoy.program["CHUNK_DATA"] = chunk.voxels.flatten()
             self.shadertoy.render()
