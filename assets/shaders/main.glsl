@@ -138,7 +138,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     CollisionInfo collision = cast_ray(PLR_POS, direction);
 
     if (collision.voxel_id > 0) {
-        fragColor = vec4(floor(collision.position) / 16.f, 1);
+        fragColor = vec4(floor(collision.position - direction * 0.01f) / 16.f, 1);
         gl_FragDepth = collision.dist / MAX_RENDER_DISTANCE;
     } else {
         fragColor = vec4(0, 0, 0, 0);
