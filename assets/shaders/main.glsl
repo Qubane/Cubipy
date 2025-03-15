@@ -99,7 +99,7 @@ CollisionInfo cast_ray(vec3 origin, vec3 direction) {
         voxel_id = get_voxel(ray_pos);
         if (voxel_id > 0)
             return CollisionInfo(
-                direction * dist,
+                origin + direction * dist,
                 dist,
                 voxel_id);
 
@@ -121,7 +121,7 @@ CollisionInfo cast_ray(vec3 origin, vec3 direction) {
         // check for length; if too far then return
         if (dist > 64.f)
             return CollisionInfo(
-                direction * dist,
+                origin + direction * dist,
                 dist,
                 voxel_id);
     }
@@ -134,10 +134,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec3 direction = normalize(vec3(uv.x, PLR_FOV, uv.y));
     direction = rotate_around_z(rotate_around_x(direction, PLR_DIR.x), PLR_DIR.y);
 
-    CollisionInfo casted_ray = cast_ray(PLR_POS, direction);
+    CollisionInfo collision = cast_ray(PLR_POS, direction);
 
-    if (casted_ray.voxel_id == 1 || casted_ray.voxel_id == -1)
-        fragColor = vec4(casted_ray.dist / 48);
+    if (collision.voxel_id > 0)
+        fragColor = vec4(floor(collision.position), 0);
     else
-        fragColor = vec4(1, 0, 0, 0);
+        fragColor = vec4(0, 0, 0, 0);
 }
