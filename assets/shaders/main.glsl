@@ -3,9 +3,9 @@
 
 
 struct CollisionInfo {
+    int voxel_id;
     vec3 position;
     float dist;
-    int voxel_id;
 };
 
 
@@ -66,7 +66,7 @@ CollisionInfo cast_ray(vec3 origin, vec3 direction) {
     float dist;
 
     // calculate integer ray positon and unit step
-    ray_pos = ivec3(origin);
+    ray_pos = ivec3(floor(origin));
     ray_unit_step = abs(1.f / direction);
 
     // calculate steps and starting lengths
@@ -99,9 +99,9 @@ CollisionInfo cast_ray(vec3 origin, vec3 direction) {
         voxel_id = get_voxel(ray_pos);
         if (voxel_id > 0)
             return CollisionInfo(
+                voxel_id,
                 origin + direction * dist,
-                dist,
-                voxel_id);
+                dist);
 
         // make a step
         if (ray_length.x < ray_length.y && ray_length.x < ray_length.z) {
@@ -121,9 +121,9 @@ CollisionInfo cast_ray(vec3 origin, vec3 direction) {
         // check for length; if too far then return
         if (dist > 64.f)
             return CollisionInfo(
+                voxel_id,
                 origin + direction * dist,
-                dist,
-                voxel_id);
+                dist);
     }
 }
 
