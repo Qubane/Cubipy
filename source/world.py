@@ -17,6 +17,15 @@ class Chunk:
         self.voxels: np.ndarray = np.zeros([CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE], dtype=np.uint8)
 
 
+class World:
+    """
+    Contains multiple chunks
+    """
+
+    def __init__(self):
+        self.chunks: dict[int, Chunk] = {}
+
+
 def generate_flat(level: int) -> Chunk:
     """
     Temporary. Generates a flat chunk
