@@ -137,7 +137,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     CollisionInfo collision = cast_ray(PLR_POS, direction);
 
     if (collision.voxel_id > 0)
-        fragColor = vec4(floor(collision.position), 0);
+        fragColor = vec4(floor(collision.position) / 16.f, 1);
     else
         fragColor = vec4(0, 0, 0, 0);
 }
