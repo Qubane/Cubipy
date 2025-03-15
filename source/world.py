@@ -31,6 +31,9 @@ class World:
         :param chunk: chunk to add
         """
 
+        name = chunk.position[2] * 1_00_00 + chunk.position[1] * 1_00 + chunk.position[0]
+        self.chunks[name] = chunk
+
 
 def generate_flat(level: int) -> Chunk:
     """
