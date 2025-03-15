@@ -1,4 +1,5 @@
 #define CHUNK_SIZE 16
+#define MAX_RENDER_DISTANCE 32.f
 #define INDEX_MASK 255
 
 
@@ -119,7 +120,7 @@ CollisionInfo cast_ray(vec3 origin, vec3 direction) {
         }
 
         // check for length; if too far then return
-        if (dist > 64.f)
+        if (dist > MAX_RENDER_DISTANCE)
             return CollisionInfo(
                 voxel_id,
                 origin + direction * dist,
@@ -136,8 +137,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     CollisionInfo collision = cast_ray(PLR_POS, direction);
 
-    if (collision.voxel_id > 0)
+    if (collision.voxel_id > 0) {
         fragColor = vec4(floor(collision.position) / 16.f, 1);
-    else
+        gl_FragDepth = collision.dist / MAX_RENDER_DISTANCE;
+    } else {
         fragColor = vec4(0, 0, 0, 0);
+        gl_FragDepth = 1.f;
+    }
 }
