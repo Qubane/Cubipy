@@ -82,7 +82,7 @@ class Application(arcade.Window):
         self.shadertoy.ctx.enable(self.ctx.BLEND)
         self.shadertoy.ctx.blend_func = (self.ctx.SRC_ALPHA, self.ctx.ONE_MINUS_SRC_ALPHA)
 
-        for _, chunk in self.world_man.__iter__():
+        for chunk in self.world_man.__iter__():
             self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos + Vec3(*chunk.position) * 16)
             self.shadertoy.program["CHUNK_DATA"] = chunk.voxels.flatten()
             self.shadertoy.render()

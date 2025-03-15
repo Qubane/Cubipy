@@ -19,4 +19,4 @@ class ChunkManager:
 
     def __iter__(self):
         # temporary code
-        return self.world.chunks.items().__iter__()
+        return self.world.chunks.values().__iter__()
