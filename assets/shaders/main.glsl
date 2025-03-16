@@ -1,8 +1,12 @@
-#define CHUNK_SIZE 16
-#define MAX_RENDER_DISTANCE 32.f
+#version 430
+#define CHUNK_SIZE 128
 #define INDEX_MASK 255
 
 
+const float CUBE_DIAG = pow(CHUNK_SIZE * CHUNK_SIZE * 3, 0.5f);
+
+
+// information about the point of ray collision
 struct CollisionInfo {
     int voxel_id;
     vec3 position;
@@ -10,12 +14,25 @@ struct CollisionInfo {
 };
 
 
-uniform int CHUNK_DATA[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE / 4];
+// shader output
+out vec4 fragColor;
+
+// uniforms
+uniform vec3 iResolution;
+
+// player uniforms
 uniform float PLR_FOV;
 uniform vec3 PLR_POS;
 uniform vec2 PLR_DIR;
 
 
+// chunk data
+layout (std430, binding = 0) buffer CHUNK_DATA_BLOCK {
+    int CHUNK[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE / 4];
+};
+
+
+// rotations
 vec3 rotate_around_x(vec3 point, float angle) {
     vec3 temp = vec3(0);
 
@@ -49,13 +66,14 @@ vec3 rotate_around_z(vec3 point, float angle) {
 }
 
 
+// world related
 int get_voxel(ivec3 pos) {
     if (pos.x > -1 && pos.x < CHUNK_SIZE &&
         pos.y > -1 && pos.y < CHUNK_SIZE &&
         pos.z > -1 && pos.z < CHUNK_SIZE) {
         int index = pos.z * CHUNK_SIZE * CHUNK_SIZE + pos.y * CHUNK_SIZE + pos.x;
         int mask_offset = (index & 3) << 3;
-        return (CHUNK_DATA[index >> 2] & (INDEX_MASK << mask_offset)) >> mask_offset;
+        return (CHUNK[index >> 2] & (INDEX_MASK << mask_offset)) >> mask_offset;
     }
     return -1;
 }
@@ -120,7 +138,7 @@ CollisionInfo cast_ray(vec3 origin, vec3 direction) {
         }
 
         // check for length; if too far then return
-        if (dist > MAX_RENDER_DISTANCE)
+        if (dist > CUBE_DIAG)
             return CollisionInfo(
                 voxel_id,
                 origin + direction * dist,
@@ -129,19 +147,29 @@ CollisionInfo cast_ray(vec3 origin, vec3 direction) {
 }
 
 
-void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-    vec2 uv = (fragCoord - iResolution.xy * 0.5f) / iResolution.y;
+void main() {
+    vec2 uv = (gl_FragCoord.xy - iResolution.xy * 0.5f) / iResolution.y;
 
+    // calculate distance to chunk border surface
+    float distance_to_chunk = max(distance(PLR_POS, vec3(CHUNK_SIZE / 2)) - CUBE_DIAG / 2, 0.f);
+
+    // calculate ray direction
     vec3 direction = normalize(vec3(uv.x, PLR_FOV, uv.y));
     direction = rotate_around_z(rotate_around_x(direction, PLR_DIR.x), PLR_DIR.y);
 
-    CollisionInfo collision = cast_ray(PLR_POS, direction);
+    // calculate ray origin
+    vec3 origin = PLR_POS + direction * distance_to_chunk;
 
+    // cast ray
+    CollisionInfo collision = cast_ray(origin, direction);
+
+    // calculate pixel color
     if (collision.voxel_id > 0) {
-        fragColor = vec4(floor(collision.position - direction * 0.01f) / 16.f, 1);
-        gl_FragDepth = collision.dist / MAX_RENDER_DISTANCE;
+        fragColor = vec4(floor(collision.position - direction * 0.01f) / CHUNK_SIZE, 1);
+//        fragColor = vec4(vec3((collision.dist + distance_to_chunk) / 128.f), 1.f);
+        gl_FragDepth = (collision.dist + distance_to_chunk) * -1e6f;
     } else {
-        fragColor = vec4(0, 0, 0, 0);
+        fragColor = vec4(0.f);
         gl_FragDepth = 1.f;
     }
 }

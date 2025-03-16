@@ -5,6 +5,7 @@ Application class
 
 import math
 import arcade
+import arcade.gl
 from pyglet.event import EVENT_HANDLE_STATE
 from source.world import *
 from source.classes import *
@@ -32,7 +33,9 @@ class Application(arcade.Window):
         self.center_window()
 
         # shader related things
-        self.shadertoy: arcade.experimental.Shadertoy | None = None
+        self.buffer: arcade.context.Framebuffer | None = None
+        self.quad: arcade.context.Geometry | None = None
+        self.program: arcade.context.Program | None = None
         self.load_shaders()
 
         # make graphs
@@ -54,11 +57,13 @@ class Application(arcade.Window):
 
         # world
         self.world: World = World()
-        for i in range(5):
-            for j in range(5):
-                chunk = generate_debug((i + j + 1) / 9, (i, j, 0))
+        accum = 0
+        for i in range(2):
+            for j in range(2):
+                chunk = generate_debug(0.025, (i, j, 0))
                 self.world.add_chunk(chunk)
-                print(f"Generated chunk at {chunk.position}")
+                accum += CHUNK_SIZE ** 3
+                print(f"Generated chunk at {chunk.position}; voxel count: {accum}")
         self.world_man: ChunkManager = ChunkManager(self.world)
         self.world_man.player = self.player
 
@@ -70,10 +75,14 @@ class Application(arcade.Window):
         # window size
         window_size = self.get_size()
 
+        # rendering
+        self.quad = arcade.gl.geometry.quad_2d_fs()
+        self.buffer = self.ctx.framebuffer(color_attachments=[self.ctx.texture(window_size, components=4)])
+
         # load shaders
-        self.shadertoy = arcade.experimental.Shadertoy.create_from_file(
-            window_size,
-            f"{SHADER_DIR}/main.glsl")
+        self.program = self.ctx.load_program(
+            vertex_shader=f"{SHADER_DIR}/vert.glsl",
+            fragment_shader=f"{SHADER_DIR}/main.glsl")
 
     # noinspection PyTypeChecker
     def on_draw(self):
@@ -81,22 +90,30 @@ class Application(arcade.Window):
         self.clear()
 
         # set uniforms that remain the same for on_draw call
-        self.shadertoy.program.set_uniform_safe("PLR_FOV", self.player.fov)
-        self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos)
-        self.shadertoy.program.set_uniform_array_safe("PLR_DIR", self.player.rot)
+        self.program.set_uniform_safe("PLR_FOV", self.player.fov)
+        self.program.set_uniform_array_safe("iResolution", (*self.size, 1.0))
+        self.program.set_uniform_array_safe("PLR_POS", self.player.pos)
+        self.program.set_uniform_array_safe("PLR_DIR", self.player.rot)
 
         # enable blending and depth testing
-        self.ctx.enable(self.ctx.DEPTH_TEST, self.ctx.BLEND)
+        self.ctx.enable(self.ctx.BLEND)
 
         # go through managed chunks and render them
+        ssbo_list = []
         for chunk in self.world_man:
-            self.shadertoy.program.set_uniform_array_safe(
-                "PLR_POS", self.player.pos + Vec3(*chunk.position) * CHUNK_SIZE)
-            self.shadertoy.program["CHUNK_DATA"] = chunk.voxels.flatten()
-            self.shadertoy.render()
+            ssbo_list.append(self.ctx.buffer(data=chunk.voxels.flatten(), usage="stream"))
+        for idx, chunk in enumerate(self.world_man):
+            chunk: Chunk
 
-        # disable depth testing for graphs
-        self.ctx.disable(self.ctx.DEPTH_TEST)
+            # set player camera position relative to chunk
+            self.program.set_uniform_array_safe(
+                "PLR_POS", self.player.pos + Vec3(*chunk.position) * CHUNK_SIZE)
+
+            # bind storage buffer with chunk data
+            ssbo_list[idx].bind_to_storage_buffer(binding=0)
+
+            # render image to quad
+            self.quad.render(self.program)
 
         # draw performance graphs
         self.perf_graph_list.draw()
