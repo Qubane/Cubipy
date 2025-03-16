@@ -58,12 +58,13 @@ class Application(arcade.Window):
         # world
         self.world: World = World()
         accum = 0
-        for i in range(2):
-            for j in range(2):
-                chunk = generate_debug(0.025, (i, j, 0))
-                self.world.add_chunk(chunk)
-                accum += CHUNK_SIZE ** 3
-                print(f"Generated chunk at {chunk.position}; voxel count: {accum}")
+        for z in range(2):
+            for y in range(2):
+                for x in range(2):
+                    self.world.add_chunk(generate_debug(0.025, (x, y, z)))
+
+                    accum += CHUNK_SIZE ** 3
+                    print(f"Generated chunk at {(x, y, z)}; voxel count: {accum}")
         self.world_man: ChunkManager = ChunkManager(self.world)
         self.world_man.player = self.player
 
