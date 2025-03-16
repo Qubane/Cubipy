@@ -7,7 +7,7 @@ from source.application import Application
 
 
 def main():
-    app = Application()
+    app = Application(title="Cubipy")
     app.run()
 
 
