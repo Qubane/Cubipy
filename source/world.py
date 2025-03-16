@@ -14,7 +14,33 @@ class Chunk:
 
     def __init__(self, position: tuple[int, int, int]):
         self.position: tuple[int, int, int] = position
-        self.voxels: np.ndarray = np.zeros([CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE], dtype=np.uint8)
+        self.voxels: np.ndarray = np.zeros([CHUNK_SIZE ** 3], dtype=np.uint8)
+
+    def set_unsafe(self, position: tuple[int, int, int], value: int) -> None:
+        """
+        Sets block at given XYZ to given value
+        :param position: block position
+        :param value: id to set
+        """
+
+    def set(self, position: tuple[int, int, int], value: int) -> None:
+        """
+        Sets block at given XYZ to given value
+        :param position: block position
+        :param value: id to set
+        """
+
+    def get_unsafe(self, position: tuple[int, int, int]) -> int:
+        """
+        Gets block at given XYZ to given value
+        :param position: block position
+        """
+
+    def get(self, position: tuple[int, int, int]) -> int:
+        """
+        Gets block at given XYZ to given value
+        :param position: block position
+        """
 
 
 class World:
@@ -47,7 +73,7 @@ def generate_flat(level: int, position: tuple[int, int, int]) -> Chunk:
     for y in range(CHUNK_SIZE):
         for x in range(CHUNK_SIZE):
             for z in range(0, level):
-                chunk.voxels[z][y][x] = 1
+                chunk.set((x, y, z), 1)
     return chunk
 
 
@@ -60,9 +86,5 @@ def generate_debug(infill: float, position: tuple[int, int, int]) -> Chunk:
     """
 
     chunk = Chunk(position)
-    for z in range(CHUNK_SIZE):
-        for y in range(CHUNK_SIZE):
-            for x in range(CHUNK_SIZE):
-                if np.random.random() <= infill:
-                    chunk.voxels[z][y][x] = 1
+    chunk.voxels = np.random.randint(0, 1, CHUNK_SIZE ** 3)
     return chunk
