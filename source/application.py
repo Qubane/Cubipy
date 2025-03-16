@@ -19,8 +19,8 @@ class Application(arcade.Window):
 
     def __init__(
             self,
-            width: int = 1280,
-            height: int = 720,
+            width: int = 1440,
+            height: int = 810,
             title: str = "window",
             gl_ver: tuple[int, int] = (4, 3)):
 
@@ -56,7 +56,9 @@ class Application(arcade.Window):
         self.world: World = World()
         for i in range(5):
             for j in range(5):
-                self.world.add_chunk(generate_debug((i + j + 1) / 20, (i, j, 0)))
+                chunk = generate_debug((i + j + 1) / 9, (i, j, 0))
+                self.world.add_chunk(chunk)
+                print(f"Generated chunk at {chunk.position}")
         self.world_man: ChunkManager = ChunkManager(self.world)
         self.world_man.player = self.player
 
@@ -88,7 +90,8 @@ class Application(arcade.Window):
 
         # go through managed chunks and render them
         for chunk in self.world_man:
-            self.shadertoy.program.set_uniform_array_safe("PLR_POS", self.player.pos + Vec3(*chunk.position) * 16)
+            self.shadertoy.program.set_uniform_array_safe(
+                "PLR_POS", self.player.pos + Vec3(*chunk.position) * CHUNK_SIZE)
             self.shadertoy.program["CHUNK_DATA"] = chunk.voxels.flatten()
             self.shadertoy.render()
 
