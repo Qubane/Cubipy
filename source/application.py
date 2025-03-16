@@ -78,7 +78,9 @@ class Application(arcade.Window):
 
         # rendering
         self.quad = arcade.gl.geometry.quad_2d_fs()
-        self.buffer = self.ctx.framebuffer(color_attachments=[self.ctx.texture(window_size, components=4)])
+        self.buffer = self.ctx.framebuffer(
+            color_attachments=[self.ctx.texture(window_size, components=4)],
+            depth_attachment=self.ctx.depth_texture(window_size))
 
         # load shaders
         self.program = self.ctx.load_program(
@@ -98,6 +100,7 @@ class Application(arcade.Window):
 
         # enable blending and depth testing
         self.ctx.enable(self.ctx.BLEND)
+        # self.ctx.enable(self.ctx.DEPTH_TEST, self.ctx.BLEND)
 
         # go through managed chunks and render them
         ssbo_list = []
@@ -115,6 +118,9 @@ class Application(arcade.Window):
 
             # render image to quad
             self.quad.render(self.program)
+
+        # # disable depth testing
+        # self.ctx.disable(self.ctx.DEPTH_TEST)
 
         # draw performance graphs
         self.perf_graph_list.draw()

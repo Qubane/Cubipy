@@ -18,5 +18,6 @@ class ChunkManager:
         self.world: World = world
 
     def __iter__(self):
-        # temporary code
-        return self.world.chunks.values().__iter__()
+        chunks = list(self.world.chunks.values())
+        chunks.sort(key=lambda x: self.player.pos.distance(x.position), reverse=True)
+        return chunks.__iter__()
