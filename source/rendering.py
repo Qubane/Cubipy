@@ -28,16 +28,23 @@ class ChunkMemory:
         for chunk in self.world.chunks.values():
             self.chunk_list.append((chunk, self.context.buffer(data=chunk.voxels, usage="static")))
 
-    def _chunk_sorting_method(self, chunk: Chunk):
+    def _chunk_sorting_method(self, data: tuple[Chunk, arcade.gl.Buffer]) -> float:
         """
         Internal method used to sort chunks
         """
+
+        sq_d = (
+            self.player.pos.x - (data[0].position[0] * CHUNK_SIZE - CHUNK_CENTER),
+            self.player.pos.y - (data[0].position[1] * CHUNK_SIZE - CHUNK_CENTER),
+            self.player.pos.z - (data[0].position[2] * CHUNK_SIZE - CHUNK_CENTER))
+
+        return (sq_d[0]*sq_d[0] + sq_d[1]*sq_d[1] + sq_d[2]*sq_d[2]) ** 0.5
 
     def __iter__(self):
         if self.context is None:
             self.context = arcade.get_window().ctx
             self._generate_mapping()
 
-        self.chunk_list.sort(key=lambda x: self.player.pos.distance(x[0].position), reverse=True)
+        self.chunk_list.sort(key=self._chunk_sorting_method)
 
         return self.chunk_list.__iter__()
