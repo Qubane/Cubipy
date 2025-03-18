@@ -3,19 +3,19 @@ World related operations
 """
 
 
+import arcade.gl
 import numpy as np
 from source.options import *
 
 
-class Chunk:
+class World:
     """
-    16x16x16 block chunk container
+    Container for large amount of cubes
     """
 
-    def __init__(self, position: tuple[int, int, int]):
-        self._id: int = (position[0] << 16) + (position[1] << 8) + position[2]
-        self.position: tuple[int, int, int] = position
-        self.voxels: np.ndarray = np.zeros([CHUNK_SIZE ** 3], dtype=np.uint8)
+    def __init__(self):
+        self.voxels: np.ndarray = np.zeros([WORLD_SIZE ** 3], dtype=np.uint8)
+        self.buffer: arcade.gl.Buffer | None = None
 
     def set_unsafe(self, position: tuple[int, int, int], value: int) -> None:
         """
@@ -25,7 +25,7 @@ class Chunk:
         :param value: id to set
         """
 
-        self.voxels[position[0] * CHUNK_LAYER + position[1] * CHUNK_SIZE + position[2]] = value
+        self.voxels[position[0] * WORLD_LAYER + position[1] * WORLD_SIZE + position[2]] = value
 
     def set(self, position: tuple[int, int, int], value: int) -> bool:
         """
@@ -35,8 +35,8 @@ class Chunk:
         :return: True when block was set, False when block was out of bounds
         """
 
-        if (-1 < position[0] < CHUNK_SIZE) and (-1 < position[1] < CHUNK_SIZE) and (-1 < position[2] < CHUNK_SIZE):
-            self.voxels[position[0] * CHUNK_LAYER + position[1] * CHUNK_SIZE + position[2]] = value
+        if (-1 < position[0] < WORLD_SIZE) and (-1 < position[1] < WORLD_SIZE) and (-1 < position[2] < WORLD_SIZE):
+            self.voxels[position[0] * WORLD_LAYER + position[1] * WORLD_SIZE + position[2]] = value
             return True
         return False
 
@@ -47,7 +47,7 @@ class Chunk:
         :param position: block position
         """
 
-        return self.voxels[position[0] * CHUNK_LAYER + position[1] * CHUNK_SIZE + position[2]]
+        return self.voxels[position[0] * WORLD_LAYER + position[1] * WORLD_SIZE + position[2]]
 
     def get(self, position: tuple[int, int, int]) -> int:
         """
@@ -56,57 +56,34 @@ class Chunk:
         :return: block id when inbound, -1 when out of bounds
         """
 
-        if (-1 < position[0] < CHUNK_SIZE) and (-1 < position[1] < CHUNK_SIZE) and (-1 < position[2] < CHUNK_SIZE):
-            return self.voxels[position[0] * CHUNK_LAYER + position[1] * CHUNK_SIZE + position[2]]
+        if (-1 < position[0] < WORLD_SIZE) and (-1 < position[1] < WORLD_SIZE) and (-1 < position[2] < WORLD_SIZE):
+            return self.voxels[position[0] * WORLD_LAYER + position[1] * WORLD_SIZE + position[2]]
         return -1
 
-    @property
-    def id(self) -> int:
-        return self._id
 
-
-class World:
-    """
-    Contains multiple chunks
-    """
-
-    def __init__(self):
-        self.chunks: dict[int, Chunk] = {}
-
-    def add_chunk(self, chunk: Chunk) -> None:
-        """
-        Adds chunk to world
-        :param chunk: chunk to add
-        """
-
-        self.chunks[chunk.id] = chunk
-
-
-def generate_flat(level: int, position: tuple[int, int, int]) -> Chunk:
+def generate_flat(level: int) -> World:
     """
     Temporary. Generates a flat chunk
     :param level: sea level
-    :param position: chunk position
     :return: chunk
     """
 
-    chunk = Chunk(position)
-    for y in range(CHUNK_SIZE):
-        for x in range(CHUNK_SIZE):
-            for z in range(0, level):
-                chunk.set_unsafe((x, y, z), 1)
-    return chunk
+    world = World()
+    for z in range(WORLD_SIZE):
+        for x in range(WORLD_SIZE):
+            for y in range(0, level):
+                world.set_unsafe((x, y, z), 1)
+    return world
 
 
-def generate_debug(infill: float, position: tuple[int, int, int]) -> Chunk:
+def generate_debug(infill: float) -> World:
     """
     Temporary. Generates chunk with randomly placed blocks with a given infill
     :param infill: % of space filled
-    :param position: chunk position
     :return: generated chunk
     """
 
-    chunk = Chunk(position)
-    voxels = np.random.random(CHUNK_SIZE ** 3)
-    chunk.voxels = (np.vectorize(lambda x: x < infill)(voxels)).astype(np.uint8)
-    return chunk
+    world = World()
+    voxels = np.random.random(WORLD_SIZE ** 3)
+    world.voxels = (np.vectorize(lambda x: x < infill)(voxels)).astype(np.uint8)
+    return world

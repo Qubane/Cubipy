@@ -10,7 +10,6 @@ from pyglet.event import EVENT_HANDLE_STATE
 from source.world import *
 from source.classes import *
 from source.options import *
-from source.rendering import *
 
 
 class Application(arcade.Window):
@@ -56,17 +55,8 @@ class Application(arcade.Window):
         self.set_exclusive_mouse()
 
         # world
-        self.world: World = World()
-        accum = 0
-        for z in range(2):
-            for y in range(2):
-                for x in range(2):
-                    self.world.add_chunk(generate_debug(0.025, (x, y, z)))
-
-                    accum += CHUNK_SIZE ** 3
-                    print(f"Generated chunk at {(x, y, z)}; voxel count: {accum}")
-        self.world_man: ChunkMemory = ChunkMemory(self.world)
-        self.world_man.player = self.player
+        self.world: World = generate_debug(0.001)
+        self.world.buffer = self.ctx.buffer(data=self.world.voxels)
 
     def load_shaders(self):
         """
@@ -98,26 +88,11 @@ class Application(arcade.Window):
         self.program.set_uniform_array_safe("u_playerPosition", self.player.pos)
         self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
 
-        # enable blending and depth testing
-        # self.ctx.enable(self.ctx.BLEND)
-        self.ctx.enable(self.ctx.DEPTH_TEST, self.ctx.BLEND)
+        # bind storage buffer with chunk data
+        self.world.buffer.bind_to_storage_buffer(binding=0)
 
-        # go through managed chunks and render them
-        for idx, (chunk, ssbo) in enumerate(self.world_man):
-            chunk: Chunk
-
-            # set player camera position relative to chunk
-            self.program.set_uniform_array_safe(
-                "u_playerPosition", self.player.pos + Vec3(*chunk.position) * CHUNK_SIZE)
-
-            # bind storage buffer with chunk data
-            ssbo.bind_to_storage_buffer(binding=0)
-
-            # render image to quad
-            self.quad.render(self.program)
-
-        # disable depth testing
-        self.ctx.disable(self.ctx.DEPTH_TEST)
+        # render image to quad
+        self.quad.render(self.program)
 
         # draw performance graphs
         self.perf_graph_list.draw()

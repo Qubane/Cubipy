@@ -27,8 +27,8 @@ uniform vec2 u_playerDirection;
 
 
 // chunk data
-layout (std430, binding = 0) buffer chunkData {
-    int ssbo_chunkData[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE / 4];
+layout (std430, binding = 0) buffer voxelData {
+    int ssbo_voxelData[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE / 4];
 };
 
 
@@ -73,7 +73,7 @@ int getBlock(ivec3 pos) {
         pos.z > -1 && pos.z < CHUNK_SIZE) {
         int index = pos.z * CHUNK_SIZE * CHUNK_SIZE + pos.y * CHUNK_SIZE + pos.x;
         int mask_offset = (index & 3) << 3;
-        return (ssbo_chunkData[index >> 2] & (INDEX_MASK << mask_offset)) >> mask_offset;
+        return (ssbo_voxelData[index >> 2] & (INDEX_MASK << mask_offset)) >> mask_offset;
     }
     return -1;
 }
