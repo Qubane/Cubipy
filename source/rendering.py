@@ -28,6 +28,11 @@ class ChunkMemory:
         for chunk in self.world.chunks.values():
             self.chunk_list.append((chunk, self.context.buffer(data=chunk.voxels, usage="static")))
 
+    def _chunk_sorting_method(self, chunk: Chunk):
+        """
+        Internal method used to sort chunks
+        """
+
     def __iter__(self):
         if self.context is None:
             self.context = arcade.get_window().ctx
