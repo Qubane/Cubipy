@@ -65,7 +65,7 @@ class Application(arcade.Window):
 
                     accum += CHUNK_SIZE ** 3
                     print(f"Generated chunk at {(x, y, z)}; voxel count: {accum}")
-        self.world_man: ChunkManager = ChunkManager(self.world)
+        self.world_man: ChunkMemory = ChunkMemory(self.world)
         self.world_man.player = self.player
 
     def load_shaders(self):
@@ -99,14 +99,11 @@ class Application(arcade.Window):
         self.program.set_uniform_array_safe("PLR_DIR", self.player.rot)
 
         # enable blending and depth testing
-        self.ctx.enable(self.ctx.BLEND)
-        # self.ctx.enable(self.ctx.DEPTH_TEST, self.ctx.BLEND)
+        # self.ctx.enable(self.ctx.BLEND)
+        self.ctx.enable(self.ctx.DEPTH_TEST, self.ctx.BLEND)
 
         # go through managed chunks and render them
-        ssbo_list = []
-        for chunk in self.world_man:
-            ssbo_list.append(self.ctx.buffer(data=chunk.voxels.flatten(), usage="stream"))
-        for idx, chunk in enumerate(self.world_man):
+        for idx, (chunk, ssbo) in enumerate(self.world_man):
             chunk: Chunk
 
             # set player camera position relative to chunk
@@ -114,13 +111,13 @@ class Application(arcade.Window):
                 "PLR_POS", self.player.pos + Vec3(*chunk.position) * CHUNK_SIZE)
 
             # bind storage buffer with chunk data
-            ssbo_list[idx].bind_to_storage_buffer(binding=0)
+            ssbo.bind_to_storage_buffer(binding=0)
 
             # render image to quad
             self.quad.render(self.program)
 
-        # # disable depth testing
-        # self.ctx.disable(self.ctx.DEPTH_TEST)
+        # disable depth testing
+        self.ctx.disable(self.ctx.DEPTH_TEST)
 
         # draw performance graphs
         self.perf_graph_list.draw()
