@@ -93,14 +93,14 @@ class Application(arcade.Window):
         self.clear()
 
         # set uniforms that remain the same for on_draw call
-        self.program.set_uniform_safe("PLR_FOV", self.player.fov)
+        self.program.set_uniform_safe("u_playerFov", self.player.fov)
         self.program.set_uniform_array_safe("iResolution", (*self.size, 1.0))
-        self.program.set_uniform_array_safe("PLR_POS", self.player.pos)
-        self.program.set_uniform_array_safe("PLR_DIR", self.player.rot)
+        self.program.set_uniform_array_safe("u_playerPosition", self.player.pos)
+        self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
 
         # enable blending and depth testing
-        # self.ctx.enable(self.ctx.BLEND)
-        self.ctx.enable(self.ctx.DEPTH_TEST, self.ctx.BLEND)
+        self.ctx.enable(self.ctx.BLEND)
+        # self.ctx.enable(self.ctx.DEPTH_TEST, self.ctx.BLEND)
 
         # go through managed chunks and render them
         for idx, (chunk, ssbo) in enumerate(self.world_man):
@@ -108,7 +108,7 @@ class Application(arcade.Window):
 
             # set player camera position relative to chunk
             self.program.set_uniform_array_safe(
-                "PLR_POS", self.player.pos + Vec3(*chunk.position) * CHUNK_SIZE)
+                "u_playerPosition", self.player.pos + Vec3(*chunk.position) * CHUNK_SIZE)
 
             # bind storage buffer with chunk data
             ssbo.bind_to_storage_buffer(binding=0)
@@ -117,7 +117,7 @@ class Application(arcade.Window):
             self.quad.render(self.program)
 
         # disable depth testing
-        self.ctx.disable(self.ctx.DEPTH_TEST)
+        # self.ctx.disable(self.ctx.DEPTH_TEST)
 
         # draw performance graphs
         self.perf_graph_list.draw()
