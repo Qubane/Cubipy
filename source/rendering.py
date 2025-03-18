@@ -45,6 +45,6 @@ class ChunkMemory:
             self.context = arcade.get_window().ctx
             self._generate_mapping()
 
-        self.chunk_list.sort(key=self._chunk_sorting_method)
+        self.chunk_list.sort(key=self._chunk_sorting_method, reverse=True)
 
         return self.chunk_list.__iter__()
