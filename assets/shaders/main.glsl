@@ -18,7 +18,7 @@ struct CollisionInfo {
 out vec4 fragColor;
 
 // uniforms
-uniform vec3 iResolution;
+uniform vec3 u_Resolution;
 
 // player uniforms
 uniform float u_playerFov;
@@ -148,7 +148,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
 
 
 void main() {
-    vec2 uv = (gl_FragCoord.xy - iResolution.xy * 0.5f) / iResolution.y;
+    vec2 uv = (gl_FragCoord.xy - u_Resolution.xy * 0.5f) / u_Resolution.y;
 
     // calculate distance to chunk border surface
     float chunkDistance = max(distance(u_playerPosition, vec3(CHUNK_SIZE / 2)) - CUBE_DIAG / 2, 0.f);
@@ -165,8 +165,7 @@ void main() {
 
     // calculate pixel color
     if (collision.voxelId > 0) {
-        fragColor = vec4(floor(collision.position - direction * 0.01f) / CHUNK_SIZE, 1);
-//        fragColor = vec4(vec3((collision.dist + distance_to_chunk) / 128.f), 1.f);
+        fragColor = vec4(floor(collision.position - direction * 0.01f) / CHUNK_SIZE, 1.f);
         gl_FragDepth = (collision.distance + chunkDistance) * -1e6f;
     } else {
         fragColor = vec4(0.f);
