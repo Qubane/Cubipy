@@ -13,6 +13,7 @@ class Chunk:
     """
 
     def __init__(self, position: tuple[int, int, int]):
+        self._id: int = (position[0] << 16) + (position[1] << 8) + position[2]
         self.position: tuple[int, int, int] = position
         self.voxels: np.ndarray = np.zeros([CHUNK_SIZE ** 3], dtype=np.uint8)
 
@@ -59,6 +60,10 @@ class Chunk:
             return self.voxels[position[0] * CHUNK_LAYER + position[1] * CHUNK_SIZE + position[2]]
         return -1
 
+    @property
+    def id(self):
+        return self._id
+
 
 class World:
     """
@@ -74,8 +79,7 @@ class World:
         :param chunk: chunk to add
         """
 
-        name = chunk.position[2] * 1_00_00 + chunk.position[1] * 1_00 + chunk.position[0]
-        self.chunks[name] = chunk
+        self.chunks[chunk.id] = chunk
 
 
 def generate_flat(level: int, position: tuple[int, int, int]) -> Chunk:
