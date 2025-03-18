@@ -61,7 +61,7 @@ class Chunk:
         return -1
 
     @property
-    def id(self):
+    def id(self) -> int:
         return self._id
 
 
