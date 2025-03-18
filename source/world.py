@@ -5,6 +5,8 @@ World related operations
 
 import arcade.gl
 import numpy as np
+from numpy import ndarray
+
 from source.options import *
 
 
@@ -25,7 +27,7 @@ class World:
         :param value: id to set
         """
 
-        self.voxels[position[0] * WORLD_LAYER + position[1] * WORLD_SIZE + position[2]] = value
+        self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]] = value
 
     def set(self, position: tuple[int, int, int], value: int) -> bool:
         """
@@ -36,10 +38,11 @@ class World:
         """
 
         if (-1 < position[0] < WORLD_SIZE) and (-1 < position[1] < WORLD_SIZE) and (-1 < position[2] < WORLD_SIZE):
-            self.voxels[position[0] * WORLD_LAYER + position[1] * WORLD_SIZE + position[2]] = value
+            self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]] = value
             return True
         return False
 
+    # noinspection PyTypeChecker
     def get_unsafe(self, position: tuple[int, int, int]) -> int:
         """
         Gets block at given XYZ to given value.
@@ -47,8 +50,9 @@ class World:
         :param position: block position
         """
 
-        return self.voxels[position[0] * WORLD_LAYER + position[1] * WORLD_SIZE + position[2]]
+        return self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]]
 
+    # noinspection PyTypeChecker
     def get(self, position: tuple[int, int, int]) -> int:
         """
         Gets block at given XYZ to given value
@@ -57,7 +61,7 @@ class World:
         """
 
         if (-1 < position[0] < WORLD_SIZE) and (-1 < position[1] < WORLD_SIZE) and (-1 < position[2] < WORLD_SIZE):
-            return self.voxels[position[0] * WORLD_LAYER + position[1] * WORLD_SIZE + position[2]]
+            return self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]]
         return -1
 
 
@@ -69,9 +73,9 @@ def generate_flat(level: int) -> World:
     """
 
     world = World()
-    for z in range(WORLD_SIZE):
+    for y in range(WORLD_SIZE):
         for x in range(WORLD_SIZE):
-            for y in range(0, level):
+            for z in range(level):
                 world.set_unsafe((x, y, z), 1)
     return world
 
