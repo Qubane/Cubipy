@@ -82,11 +82,11 @@ int getBlock(ivec3 pos) {
 }
 
 
-vec3 getNormal(vec3 pos) {
+vec3 getNormal(vec3 pos, float offset) {
     return vec3(
-        int(getBlock(ivec3(pos.x - 2e-3, pos.y, pos.z)) > 0) - int(getBlock(ivec3(pos.x + 2e-3, pos.y, pos.z)) > 0),
-        int(getBlock(ivec3(pos.x, pos.y - 2e-3, pos.z)) > 0) - int(getBlock(ivec3(pos.x, pos.y + 2e-3, pos.z)) > 0),
-        int(getBlock(ivec3(pos.x, pos.y, pos.z - 2e-3)) > 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + 2e-3)) > 0));
+        int(getBlock(ivec3(pos.x - offset, pos.y, pos.z)) > 0) - int(getBlock(ivec3(pos.x + offset, pos.y, pos.z)) > 0),
+        int(getBlock(ivec3(pos.x, pos.y - offset, pos.z)) > 0) - int(getBlock(ivec3(pos.x, pos.y + offset, pos.z)) > 0),
+        int(getBlock(ivec3(pos.x, pos.y, pos.z - offset)) > 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + offset)) > 0));
 }
 
 
@@ -131,7 +131,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (voxel_id > 0)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * (dist - 1e-3),
+                origin + direction * (dist - 1e-6),
                 dist);
 
         // make a step
@@ -153,7 +153,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (dist > CUBE_DIAG)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * (dist - 1e-3),
+                origin + direction * (dist - 1e-6),
                 dist);
     }
 }
@@ -176,11 +176,12 @@ void main() {
     CollisionInfo initial = castRay(origin, direction);
 
     // cast shadow ray
-    CollisionInfo shadow = castRay(initial.position, -u_worldSun);
+    CollisionInfo shadow = castRay(initial.position - u_worldSun * 1e-3, -u_worldSun);
 
     // calculate pixel color
     if (initial.voxelId > 0) {
-        vec3 initialColor = (getNormal(initial.position) + vec3(1)) / 2;
+        float distancePrecision = initial.distance / (CUBE_DIAG * 4);
+        vec3 initialColor = (getNormal(initial.position, distancePrecision) + vec3(1)) / 2;
 
         // block is not in shadow
         if (shadow.voxelId == -1) {
