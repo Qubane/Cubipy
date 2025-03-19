@@ -92,20 +92,25 @@ def generate_debug(infill: float) -> World:
     return world
 
 
-def generate_landscape(level: int, magnitude: float, smoothness: int) -> World:
+def generate_landscape(level: int, magnitude: float) -> World:
     """
     Temporary. Generates simple landscape
     :param level: sea level
     :param magnitude: magnitude
-    :param smoothness: smoothness
     :return: generated chunk
     """
 
     print("Generating height map...")
-    height_map = np.random.random([WORLD_SIZE // smoothness, WORLD_SIZE // smoothness]).astype(np.float64)
-    height_map = zoom(height_map, smoothness)
-    if height_map.shape[0] != WORLD_SIZE:
-        raise NotImplementedError
+    octets = [
+        (2, 0.05),
+        (4, 0.05),
+        (8, 0.2),
+        (16, 0.2),
+        (32, 0.5)]
+    height_map = np.zeros([WORLD_SIZE, WORLD_SIZE], dtype=np.float64)
+    for octet, influence in octets:
+        temp_height_map = np.random.random([WORLD_SIZE // octet, WORLD_SIZE // octet]).astype(np.float64)
+        height_map += zoom(temp_height_map, octet) * influence
     print("done;\n")
 
     world = World()
