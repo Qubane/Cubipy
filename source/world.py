@@ -3,7 +3,6 @@ World related operations
 """
 
 
-import os
 import arcade.gl
 import numpy as np
 from scipy.ndimage import zoom
