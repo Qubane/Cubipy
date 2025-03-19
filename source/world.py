@@ -3,7 +3,7 @@ World related operations
 """
 
 
-# from PIL import Image
+from PIL import Image
 import arcade.gl
 import numpy as np
 from numpy import ndarray
@@ -116,14 +116,14 @@ def generate_landscape(level: int, magnitude: float) -> World:
                     for x in range(plotting_size):
                         hm_index = (y + oct_y * plotting_size) * WORLD_SIZE + (x + oct_x * plotting_size)
                         height_map[hm_index] += noise[octet][oct_y * octet_size + oct_x]
-    height_map /= octet_count + 1
+    height_map /= octet_count
 
-    # Image.fromarray((height_map * 255).astype(np.uint8).reshape([WORLD_SIZE, WORLD_SIZE])).save("height.png")
+    Image.fromarray((height_map * 255).astype(np.uint8).reshape([WORLD_SIZE, WORLD_SIZE])).save("height.png")
 
     world = World()
     for y in range(WORLD_SIZE):
         for x in range(WORLD_SIZE):
-            height = int(height_map[y * WORLD_SIZE + x] * magnitude + level)
+            height = int((height_map[y * WORLD_SIZE + x] - 0.5) * magnitude + level)
             for z in range(height):
                 world.set_unsafe((x, y, z), 1)
     return world
