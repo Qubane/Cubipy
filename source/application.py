@@ -3,7 +3,7 @@ Application class
 """
 
 
-import math
+import os
 import arcade
 import arcade.gl
 from pyglet.event import EVENT_HANDLE_STATE
@@ -55,7 +55,13 @@ class Application(arcade.Window):
         self.set_exclusive_mouse()
 
         # world
-        self.world: World = WorldGen.generate_landscape(WORLD_SIZE // 2, 32)
+        debug_world_name = f"{SAVES_DIR}/debug.npy"
+        self.world: World = World()
+        if not os.path.isfile(debug_world_name):
+            self.world: World = WorldGen.generate_landscape(WORLD_SIZE // 2, 32)
+            self.world.save(debug_world_name)
+        else:
+            self.world.load(debug_world_name)
         self.world.buffer = self.ctx.buffer(data=self.world.voxels)
 
     def load_shaders(self):
