@@ -84,9 +84,9 @@ int getBlock(ivec3 pos) {
 
 vec3 getNormal(vec3 pos) {
     return vec3(
-        int(getBlock(ivec3(pos.x - 2e-4, pos.y, pos.z)) == 0) - int(getBlock(ivec3(pos.x + 2e-4, pos.y, pos.z)) == 0),
-        int(getBlock(ivec3(pos.x, pos.y - 2e-4, pos.z)) == 0) - int(getBlock(ivec3(pos.x, pos.y + 2e-4, pos.z)) == 0),
-        int(getBlock(ivec3(pos.x, pos.y, pos.z - 2e-4)) == 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + 2e-4)) == 0));
+        int(getBlock(ivec3(pos.x - 2e-4, pos.y, pos.z)) > 0) - int(getBlock(ivec3(pos.x + 2e-4, pos.y, pos.z)) > 0),
+        int(getBlock(ivec3(pos.x, pos.y - 2e-4, pos.z)) > 0) - int(getBlock(ivec3(pos.x, pos.y + 2e-4, pos.z)) > 0),
+        int(getBlock(ivec3(pos.x, pos.y, pos.z - 2e-4)) > 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + 2e-4)) > 0));
 }
 
 
