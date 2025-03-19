@@ -3,7 +3,6 @@ World related operations
 """
 
 
-import arcade.gl
 import numpy as np
 from scipy.ndimage import zoom
 from source.options import *
@@ -16,7 +15,6 @@ class World:
 
     def __init__(self):
         self.voxels: np.ndarray = np.zeros(WORLD_SIZE ** 3, dtype=np.uint8)
-        self.buffer: arcade.gl.Buffer | None = None
 
         self.sun: tuple[float, float, float] = (1, 2, -2)
         length = (self.sun[0]**2 + self.sun[1]**2 + self.sun[2]**2) ** 0.5

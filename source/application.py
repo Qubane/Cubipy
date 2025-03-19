@@ -62,7 +62,7 @@ class Application(arcade.Window):
             self.world.save(debug_world_name)
         else:
             self.world.load(debug_world_name)
-        self.world.buffer = self.ctx.buffer(data=self.world.voxels)
+        self.world_buffer = self.ctx.buffer(data=self.world.voxels, usage="static")
 
     def load_shaders(self):
         """
@@ -96,7 +96,7 @@ class Application(arcade.Window):
         self.program.set_uniform_array_safe("u_worldSun", self.world.sun)
 
         # bind storage buffer with chunk data
-        self.world.buffer.bind_to_storage_buffer(binding=0)
+        self.world_buffer.bind_to_storage_buffer(binding=0)
 
         # render image to quad
         self.quad.render(self.program)
