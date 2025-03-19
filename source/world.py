@@ -67,64 +67,65 @@ class World:
             return self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]]
         return -1
 
+    @staticmethod
+    def generate_flat(level: int) -> "World":
+        """
+        Generates a flat chunk
+        :param level: sea level
+        :return: generated world
+        """
 
-def generate_flat(level: int) -> World:
-    """
-    Temporary. Generates a flat chunk
-    :param level: sea level
-    :return: chunk
-    """
+        world = World()
+        for y in range(WORLD_SIZE):
+            for x in range(WORLD_SIZE):
+                for z in range(level):
+                    world.set_unsafe((x, y, z), 1)
+        return world
 
-    world = World()
-    for y in range(WORLD_SIZE):
-        for x in range(WORLD_SIZE):
-            for z in range(level):
-                world.set_unsafe((x, y, z), 1)
-    return world
+    @staticmethod
+    def generate_debug(infill: float) -> "World":
+        """
+        Generates chunk with randomly placed blocks with a given infill
+        :param infill: % of space filled
+        :return: generated world
+        """
 
+        world = World()
+        voxels = np.random.random(WORLD_SIZE ** 3)
+        world.voxels = (np.vectorize(lambda x: x < infill)(voxels)).astype(np.uint8)
+        return world
 
-def generate_debug(infill: float) -> World:
-    """
-    Temporary. Generates chunk with randomly placed blocks with a given infill
-    :param infill: % of space filled
-    :return: generated chunk
-    """
+    @staticmethod
+    def generate_landscape(level: int, magnitude: float) -> "World":
+        """
+        Generates simple landscape
+        :param level: sea level
+        :param magnitude: magnitude
+        :return: generated world
+        """
 
-    world = World()
-    voxels = np.random.random(WORLD_SIZE ** 3)
-    world.voxels = (np.vectorize(lambda x: x < infill)(voxels)).astype(np.uint8)
-    return world
+        print("Generating height map...")
+        octets = [
+            (2, 0.05),
+            (4, 0.05),
+            (8, 0.2),
+            (16, 0.2),
+            (32, 0.5)]
+        height_map = np.zeros([WORLD_SIZE, WORLD_SIZE], dtype=np.float64)
+        for octet, influence in octets:
+            temp_height_map = np.random.random([WORLD_SIZE // octet, WORLD_SIZE // octet]).astype(np.float64)
+            height_map += zoom(temp_height_map, octet) * influence
+        print("done;\n")
 
+        world = World()
+        print("Putting in the blocks...")
+        for y in range(WORLD_SIZE):
+            for x in range(WORLD_SIZE):
+                height = int((height_map[y][x] - 0.5) * magnitude + level)
+                for z in range(height):
+                    world.set_unsafe((x, y, z), 1)
+            if y % (WORLD_SIZE // 25) == 0:
+                print(f"{y / WORLD_SIZE * 100:.2f}% done;")
+        print("done;\n")
 
-def generate_landscape(level: int, magnitude: float) -> World:
-    """
-    Temporary. Generates simple landscape
-    :param level: sea level
-    :param magnitude: magnitude
-    :return: generated chunk
-    """
-
-    print("Generating height map...")
-    octets = [
-        (2, 0.05),
-        (4, 0.05),
-        (8, 0.2),
-        (16, 0.2),
-        (32, 0.5)]
-    height_map = np.zeros([WORLD_SIZE, WORLD_SIZE], dtype=np.float64)
-    for octet, influence in octets:
-        temp_height_map = np.random.random([WORLD_SIZE // octet, WORLD_SIZE // octet]).astype(np.float64)
-        height_map += zoom(temp_height_map, octet) * influence
-    print("done;\n")
-
-    world = World()
-    print("Putting in the blocks...")
-    for y in range(WORLD_SIZE):
-        for x in range(WORLD_SIZE):
-            height = int((height_map[y][x] - 0.5) * magnitude + level)
-            for z in range(height):
-                world.set_unsafe((x, y, z), 1)
-        if y % (WORLD_SIZE // 25) == 0:
-            print(f"{y / WORLD_SIZE * 100:.2f}% done;")
-    print("done;\n")
-    return world
+        return world
