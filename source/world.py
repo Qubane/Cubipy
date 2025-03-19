@@ -73,7 +73,7 @@ class World:
         :param filename: name of the file
         """
 
-        np.savez_compressed(filename, self.voxels)
+        np.save(filename, self.voxels)
 
     def load(self, filename: str) -> None:
         """
