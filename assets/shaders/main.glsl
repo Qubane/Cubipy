@@ -131,7 +131,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (voxel_id > 0)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * (dist - 1e-6),
+                origin + direction * (dist - 1e-5),
                 dist);
 
         // make a step
@@ -153,7 +153,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (dist > CUBE_DIAG)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * (dist - 1e-6),
+                origin + direction * (dist - 1e-5),
                 dist);
     }
 }
@@ -175,19 +175,21 @@ void main() {
     // cast ray
     CollisionInfo initial = castRay(origin, direction);
 
+    // calculate distance dependant offsets
+    float distancePrecision = initial.distance / (CUBE_DIAG * 5);
+
     // cast shadow ray
-    CollisionInfo shadow = castRay(initial.position - u_worldSun * 1e-3, -u_worldSun);
+    CollisionInfo shadow = castRay(initial.position - u_worldSun * distancePrecision, -u_worldSun);
 
     // calculate pixel color
     if (initial.voxelId > 0) {
-        float distancePrecision = initial.distance / (CUBE_DIAG * 4);
         vec3 initialColor = (getNormal(initial.position, distancePrecision) + vec3(1)) / 2;
 
         // block is not in shadow
         if (shadow.voxelId == -1) {
             fragColor = vec4(initialColor, 1.f);
         } else {
-            fragColor = vec4(initialColor * 0.1f, 1.f);
+            fragColor = vec4(initialColor * 0.12f, 1.f);
         }
 
 //        fragColor = vec4(floor(collision.position) / CHUNK_SIZE, 1.f);
