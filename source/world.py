@@ -18,6 +18,10 @@ class World:
         self.voxels: np.ndarray = np.zeros(WORLD_SIZE ** 3, dtype=np.uint8)
         self.buffer: arcade.gl.Buffer | None = None
 
+        self.sun: tuple[float, float, float] = (1, 2, -2)
+        length = (self.sun[0]**2 + self.sun[1]**2 + self.sun[2]**2) ** 0.5
+        self.sun = (self.sun[0] / length, self.sun[1] / length, self.sun[2] / length)
+
     def set_unsafe(self, position: tuple[int, int, int], value: int) -> None:
         """
         Sets block at given XYZ to given value.
