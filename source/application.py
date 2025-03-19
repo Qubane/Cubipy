@@ -3,14 +3,13 @@ Application class
 """
 
 
-import math
+import os
 import arcade
 import arcade.gl
 from pyglet.event import EVENT_HANDLE_STATE
 from source.world import *
 from source.classes import *
 from source.options import *
-from source.rendering import *
 
 
 class Application(arcade.Window):
@@ -48,7 +47,7 @@ class Application(arcade.Window):
         self.perf_graph_list.append(graph)
 
         # player
-        self.player: Player = Player(Vec3(8, 8, 8), Vec2(0, 90))
+        self.player: Player = Player(Vec3(WORLD_CENTER, WORLD_CENTER, WORLD_CENTER), Vec2(0, 90))
 
         # player movement
         self.keys: set[int] = set()
@@ -56,17 +55,14 @@ class Application(arcade.Window):
         self.set_exclusive_mouse()
 
         # world
+        debug_world_name = f"{SAVES_DIR}/debug.npy"
         self.world: World = World()
-        accum = 0
-        for z in range(2):
-            for y in range(2):
-                for x in range(2):
-                    self.world.add_chunk(generate_debug(0.025, (x, y, z)))
-
-                    accum += CHUNK_SIZE ** 3
-                    print(f"Generated chunk at {(x, y, z)}; voxel count: {accum}")
-        self.world_man: ChunkManager = ChunkManager(self.world)
-        self.world_man.player = self.player
+        if not os.path.isfile(debug_world_name):
+            self.world: World = WorldGen.generate_landscape(WORLD_SIZE // 2, 32)
+            self.world.save(debug_world_name)
+        else:
+            self.world.load(debug_world_name)
+        self.world_buffer = self.ctx.buffer(data=self.world.voxels, usage="static")
 
     def load_shaders(self):
         """
@@ -93,34 +89,17 @@ class Application(arcade.Window):
         self.clear()
 
         # set uniforms that remain the same for on_draw call
-        self.program.set_uniform_safe("PLR_FOV", self.player.fov)
-        self.program.set_uniform_array_safe("iResolution", (*self.size, 1.0))
-        self.program.set_uniform_array_safe("PLR_POS", self.player.pos)
-        self.program.set_uniform_array_safe("PLR_DIR", self.player.rot)
+        self.program.set_uniform_safe("u_playerFov", self.player.fov)
+        self.program.set_uniform_array_safe("u_Resolution", (*self.size, 1.0))
+        self.program.set_uniform_array_safe("u_playerPosition", self.player.pos)
+        self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
+        self.program.set_uniform_array_safe("u_worldSun", self.world.sun)
 
-        # enable blending and depth testing
-        self.ctx.enable(self.ctx.BLEND)
-        # self.ctx.enable(self.ctx.DEPTH_TEST, self.ctx.BLEND)
+        # bind storage buffer with chunk data
+        self.world_buffer.bind_to_storage_buffer(binding=0)
 
-        # go through managed chunks and render them
-        ssbo_list = []
-        for chunk in self.world_man:
-            ssbo_list.append(self.ctx.buffer(data=chunk.voxels.flatten(), usage="stream"))
-        for idx, chunk in enumerate(self.world_man):
-            chunk: Chunk
-
-            # set player camera position relative to chunk
-            self.program.set_uniform_array_safe(
-                "PLR_POS", self.player.pos + Vec3(*chunk.position) * CHUNK_SIZE)
-
-            # bind storage buffer with chunk data
-            ssbo_list[idx].bind_to_storage_buffer(binding=0)
-
-            # render image to quad
-            self.quad.render(self.program)
-
-        # # disable depth testing
-        # self.ctx.disable(self.ctx.DEPTH_TEST)
+        # render image to quad
+        self.quad.render(self.program)
 
         # draw performance graphs
         self.perf_graph_list.draw()

@@ -4,17 +4,21 @@ World related operations
 
 
 import numpy as np
+from scipy.ndimage import zoom
 from source.options import *
 
 
-class Chunk:
+class World:
     """
-    16x16x16 block chunk container
+    Container for large amount of cubes
     """
 
-    def __init__(self, position: tuple[int, int, int]):
-        self.position: tuple[int, int, int] = position
-        self.voxels: np.ndarray = np.zeros([CHUNK_SIZE ** 3], dtype=np.uint8)
+    def __init__(self):
+        self.voxels: np.ndarray = np.zeros(WORLD_SIZE ** 3, dtype=np.uint8)
+
+        self.sun: tuple[float, float, float] = (1, 2, -2)
+        length = (self.sun[0]**2 + self.sun[1]**2 + self.sun[2]**2) ** 0.5
+        self.sun = (self.sun[0] / length, self.sun[1] / length, self.sun[2] / length)
 
     def set_unsafe(self, position: tuple[int, int, int], value: int) -> None:
         """
@@ -24,7 +28,7 @@ class Chunk:
         :param value: id to set
         """
 
-        self.voxels[position[0] * CHUNK_LAYER + position[1] * CHUNK_SIZE + position[2]] = value
+        self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]] = value
 
     def set(self, position: tuple[int, int, int], value: int) -> bool:
         """
@@ -34,11 +38,12 @@ class Chunk:
         :return: True when block was set, False when block was out of bounds
         """
 
-        if (-1 < position[0] < CHUNK_SIZE) and (-1 < position[1] < CHUNK_SIZE) and (-1 < position[2] < CHUNK_SIZE):
-            self.voxels[position[0] * CHUNK_LAYER + position[1] * CHUNK_SIZE + position[2]] = value
+        if (-1 < position[0] < WORLD_SIZE) and (-1 < position[1] < WORLD_SIZE) and (-1 < position[2] < WORLD_SIZE):
+            self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]] = value
             return True
         return False
 
+    # noinspection PyTypeChecker
     def get_unsafe(self, position: tuple[int, int, int]) -> int:
         """
         Gets block at given XYZ to given value.
@@ -46,8 +51,9 @@ class Chunk:
         :param position: block position
         """
 
-        return self.voxels[position[0] * CHUNK_LAYER + position[1] * CHUNK_SIZE + position[2]]
+        return self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]]
 
+    # noinspection PyTypeChecker
     def get(self, position: tuple[int, int, int]) -> int:
         """
         Gets block at given XYZ to given value
@@ -55,54 +61,91 @@ class Chunk:
         :return: block id when inbound, -1 when out of bounds
         """
 
-        if (-1 < position[0] < CHUNK_SIZE) and (-1 < position[1] < CHUNK_SIZE) and (-1 < position[2] < CHUNK_SIZE):
-            return self.voxels[position[0] * CHUNK_LAYER + position[1] * CHUNK_SIZE + position[2]]
+        if (-1 < position[0] < WORLD_SIZE) and (-1 < position[1] < WORLD_SIZE) and (-1 < position[2] < WORLD_SIZE):
+            return self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]]
         return -1
 
-
-class World:
-    """
-    Contains multiple chunks
-    """
-
-    def __init__(self):
-        self.chunks: dict[int, Chunk] = {}
-
-    def add_chunk(self, chunk: Chunk) -> None:
+    def save(self, filename: str):
         """
-        Adds chunk to world
-        :param chunk: chunk to add
+        Saves the world to file with given name.
+        :param filename: name of the file
         """
 
-        name = chunk.position[2] * 1_00_00 + chunk.position[1] * 1_00 + chunk.position[0]
-        self.chunks[name] = chunk
+        np.save(filename, self.voxels)
+
+    def load(self, filename: str) -> None:
+        """
+        Loads the world from a file with given name.
+        :param filename: name of the file
+        """
+
+        self.voxels = np.load(filename)
 
 
-def generate_flat(level: int, position: tuple[int, int, int]) -> Chunk:
+class WorldGen:
     """
-    Temporary. Generates a flat chunk
-    :param level: sea level
-    :param position: chunk position
-    :return: chunk
-    """
-
-    chunk = Chunk(position)
-    for y in range(CHUNK_SIZE):
-        for x in range(CHUNK_SIZE):
-            for z in range(0, level):
-                chunk.set_unsafe((x, y, z), 1)
-    return chunk
-
-
-def generate_debug(infill: float, position: tuple[int, int, int]) -> Chunk:
-    """
-    Temporary. Generates chunk with randomly placed blocks with a given infill
-    :param infill: % of space filled
-    :param position: chunk position
-    :return: generated chunk
+    World generation
     """
 
-    chunk = Chunk(position)
-    voxels = np.random.random(CHUNK_SIZE ** 3)
-    chunk.voxels = (np.vectorize(lambda x: x < infill)(voxels)).astype(np.uint8)
-    return chunk
+    @staticmethod
+    def generate_flat(level: int) -> World:
+        """
+        Generates a flat chunk
+        :param level: sea level
+        :return: generated world
+        """
+
+        world = World()
+        for y in range(WORLD_SIZE):
+            for x in range(WORLD_SIZE):
+                for z in range(level):
+                    world.set_unsafe((x, y, z), 1)
+        return world
+
+    @staticmethod
+    def generate_debug(infill: float) -> World:
+        """
+        Generates chunk with randomly placed blocks with a given infill
+        :param infill: % of space filled
+        :return: generated world
+        """
+
+        world = World()
+        voxels = np.random.random(WORLD_SIZE ** 3)
+        world.voxels = (np.vectorize(lambda x: x < infill)(voxels)).astype(np.uint8)
+        return world
+
+    @staticmethod
+    def generate_landscape(level: int, magnitude: float) -> World:
+        """
+        Generates simple landscape
+        :param level: sea level
+        :param magnitude: magnitude
+        :return: generated world
+        """
+
+        print("Generating height map...")
+        octets = [
+            (2, 0.05),
+            (4, 0.05),
+            (8, 0.2),
+            (16, 0.2),
+            (32, 0.5)]
+        height_map = np.zeros([WORLD_SIZE, WORLD_SIZE], dtype=np.float64)
+        for octet, influence in octets:
+            temp_height_map = np.random.random([WORLD_SIZE // octet, WORLD_SIZE // octet]).astype(np.float64)
+            height_map += zoom(temp_height_map, octet) * influence
+        print("done;\n")
+
+        print("Putting in the blocks...")
+        world = World()
+        for y in range(WORLD_SIZE):
+            for x in range(WORLD_SIZE):
+                height = int((height_map[y][x] - 0.5) * magnitude + level)
+                for z in range(height):
+                    world.set_unsafe((x, y, z), 1)
+            if y % (WORLD_SIZE // 25) == 0:
+                print(f"{y / WORLD_SIZE * 100:.2f}% done;")
+        print("done;\n")
+
+        return world

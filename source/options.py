@@ -6,5 +6,8 @@ Configuration file
 ASSETS_DIR = "assets"
 SHADER_DIR = f"{ASSETS_DIR}/shaders"
 
-CHUNK_SIZE = 128
-CHUNK_LAYER = CHUNK_SIZE ** 2
+SAVES_DIR = "saves"
+
+WORLD_SIZE = 512
+WORLD_LAYER = WORLD_SIZE ** 2
+WORLD_CENTER = WORLD_SIZE // 2
