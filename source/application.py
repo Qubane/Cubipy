@@ -47,7 +47,7 @@ class Application(arcade.Window):
         self.perf_graph_list.append(graph)
 
         # player
-        self.player: Player = Player(Vec3(8, 8, 8), Vec2(0, 90))
+        self.player: Player = Player(Vec3(WORLD_CENTER, WORLD_CENTER, WORLD_CENTER), Vec2(0, 90))
 
         # player movement
         self.keys: set[int] = set()
@@ -55,7 +55,7 @@ class Application(arcade.Window):
         self.set_exclusive_mouse()
 
         # world
-        self.world: World = generate_debug(0.001)
+        self.world: World = generate_landscape(WORLD_SIZE // 2, 24)
         self.world.buffer = self.ctx.buffer(data=self.world.voxels)
 
     def load_shaders(self):
@@ -87,6 +87,7 @@ class Application(arcade.Window):
         self.program.set_uniform_array_safe("u_Resolution", (*self.size, 1.0))
         self.program.set_uniform_array_safe("u_playerPosition", self.player.pos)
         self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
+        self.program.set_uniform_array_safe("u_worldSun", self.world.sun)
 
         # bind storage buffer with chunk data
         self.world.buffer.bind_to_storage_buffer(binding=0)
