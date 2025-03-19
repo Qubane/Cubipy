@@ -1,5 +1,5 @@
 #version 430
-#define CHUNK_SIZE 128
+#define CHUNK_SIZE 256
 #define INDEX_MASK 255
 
 
@@ -165,7 +165,8 @@ void main() {
 
     // calculate pixel color
     if (collision.voxelId > 0) {
-        fragColor = vec4(floor(collision.position - direction * 0.01f) / CHUNK_SIZE, 1.f);
+//        fragColor = vec4(floor(collision.position - direction * 0.01f) / CHUNK_SIZE, 1.f);
+        fragColor = vec4(vec3((collision.distance + chunkDistance) / CUBE_DIAG), 1);
         gl_FragDepth = (collision.distance + chunkDistance) * -1e6f;
     } else {
         fragColor = vec4(0.f);
