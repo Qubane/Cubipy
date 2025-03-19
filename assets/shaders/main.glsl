@@ -79,6 +79,15 @@ int getBlock(ivec3 pos) {
 }
 
 
+vec3 getNormal(vec3 pos) {
+    return vec3(
+        int(getBlock(ivec3(pos.x - 1e-3, pos.y, pos.z)) == 0) - int(getBlock(ivec3(pos.x + 1e-3, pos.y, pos.z)) == 0),
+        int(getBlock(ivec3(pos.x, pos.y - 1e-3, pos.z)) == 0) - int(getBlock(ivec3(pos.x, pos.y + 1e-3, pos.z)) == 0),
+        int(getBlock(ivec3(pos.x, pos.y, pos.z - 1e-3)) == 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + 1e-3)) == 0));
+}
+
+
+// ray caster
 CollisionInfo castRay(vec3 origin, vec3 direction) {
     ivec3 rayPostion, rayStep;
     vec3 rayUnit, rayLength;
@@ -119,7 +128,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (voxel_id > 0)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * dist,
+                origin + direction * (dist - 1e-5),
                 dist);
 
         // make a step
@@ -141,7 +150,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (dist > CUBE_DIAG)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * dist,
+                origin + direction * (dist - 1e-5),
                 dist);
     }
 }
@@ -166,7 +175,8 @@ void main() {
     // calculate pixel color
     if (collision.voxelId > 0) {
 //        fragColor = vec4(floor(collision.position - direction * 0.01f) / CHUNK_SIZE, 1.f);
-        fragColor = vec4(vec3((collision.distance + chunkDistance) / CUBE_DIAG), 1);
+        fragColor = vec4((getNormal(collision.position) + vec3(1)) / 2, 1.f);
+//        fragColor = vec4(vec3((collision.distance + chunkDistance) / CUBE_DIAG), 1);
         gl_FragDepth = (collision.distance + chunkDistance) * -1e6f;
     } else {
         fragColor = vec4(0.f);
