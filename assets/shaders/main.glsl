@@ -25,6 +25,9 @@ uniform float u_playerFov;
 uniform vec3 u_playerPosition;
 uniform vec2 u_playerDirection;
 
+// world uniforms
+uniform vec3 u_worldSun;
+
 
 // chunk data
 layout (std430, binding = 0) buffer voxelData {
@@ -81,9 +84,9 @@ int getBlock(ivec3 pos) {
 
 vec3 getNormal(vec3 pos) {
     return vec3(
-        int(getBlock(ivec3(pos.x - 1e-3, pos.y, pos.z)) == 0) - int(getBlock(ivec3(pos.x + 1e-3, pos.y, pos.z)) == 0),
-        int(getBlock(ivec3(pos.x, pos.y - 1e-3, pos.z)) == 0) - int(getBlock(ivec3(pos.x, pos.y + 1e-3, pos.z)) == 0),
-        int(getBlock(ivec3(pos.x, pos.y, pos.z - 1e-3)) == 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + 1e-3)) == 0));
+        int(getBlock(ivec3(pos.x - 2e-4, pos.y, pos.z)) == 0) - int(getBlock(ivec3(pos.x + 2e-4, pos.y, pos.z)) == 0),
+        int(getBlock(ivec3(pos.x, pos.y - 2e-4, pos.z)) == 0) - int(getBlock(ivec3(pos.x, pos.y + 2e-4, pos.z)) == 0),
+        int(getBlock(ivec3(pos.x, pos.y, pos.z - 2e-4)) == 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + 2e-4)) == 0));
 }
 
 
@@ -128,7 +131,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (voxel_id > 0)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * (dist - 1e-5),
+                origin + direction * (dist - 1e-4),
                 dist);
 
         // make a step
@@ -150,7 +153,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (dist > CUBE_DIAG)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * (dist - 1e-5),
+                origin + direction * (dist - 1e-4),
                 dist);
     }
 }
@@ -170,14 +173,25 @@ void main() {
     vec3 origin = u_playerPosition + direction * chunkDistance;
 
     // cast ray
-    CollisionInfo collision = castRay(origin, direction);
+    CollisionInfo initial = castRay(origin, direction);
+
+    // cast shadow ray
+    CollisionInfo shadow = castRay(initial.position, -u_worldSun);
 
     // calculate pixel color
-    if (collision.voxelId > 0) {
-//        fragColor = vec4(floor(collision.position - direction * 0.01f) / CHUNK_SIZE, 1.f);
-        fragColor = vec4((getNormal(collision.position) + vec3(1)) / 2, 1.f);
-//        fragColor = vec4(vec3((collision.distance + chunkDistance) / CUBE_DIAG), 1);
-        gl_FragDepth = (collision.distance + chunkDistance) * -1e6f;
+    if (initial.voxelId > 0) {
+        vec3 initialColor = (getNormal(initial.position) + vec3(1)) / 2;
+
+        // block is not in shadow
+        if (shadow.voxelId == -1) {
+            fragColor = vec4(initialColor, 1.f);
+        } else {
+            fragColor = vec4(initialColor * 0.1f, 1.f);
+        }
+
+//        fragColor = vec4(floor(collision.position) / CHUNK_SIZE, 1.f);
+//        fragColor = vec4((getNormal(collision.position) + vec3(1)) / 2, 1.f);
+        gl_FragDepth = (initial.distance + chunkDistance) * -1e6f;
     } else {
         fragColor = vec4(0.f);
         gl_FragDepth = 1.f;
