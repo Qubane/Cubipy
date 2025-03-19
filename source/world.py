@@ -67,8 +67,14 @@ class World:
             return self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]]
         return -1
 
+
+class WorldGen:
+    """
+    World generation
+    """
+
     @staticmethod
-    def generate_flat(level: int) -> "World":
+    def generate_flat(level: int) -> World:
         """
         Generates a flat chunk
         :param level: sea level
@@ -83,7 +89,7 @@ class World:
         return world
 
     @staticmethod
-    def generate_debug(infill: float) -> "World":
+    def generate_debug(infill: float) -> World:
         """
         Generates chunk with randomly placed blocks with a given infill
         :param infill: % of space filled
@@ -96,7 +102,7 @@ class World:
         return world
 
     @staticmethod
-    def generate_landscape(level: int, magnitude: float) -> "World":
+    def generate_landscape(level: int, magnitude: float) -> World:
         """
         Generates simple landscape
         :param level: sea level
@@ -117,8 +123,8 @@ class World:
             height_map += zoom(temp_height_map, octet) * influence
         print("done;\n")
 
-        world = World()
         print("Putting in the blocks...")
+        world = World()
         for y in range(WORLD_SIZE):
             for x in range(WORLD_SIZE):
                 height = int((height_map[y][x] - 0.5) * magnitude + level)
