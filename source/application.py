@@ -55,7 +55,7 @@ class Application(arcade.Window):
         self.set_exclusive_mouse()
 
         # world
-        self.world: World = generate_landscape(WORLD_SIZE // 2, 24)
+        self.world: World = WorldGen.generate_landscape(WORLD_SIZE // 2, 32)
         self.world.buffer = self.ctx.buffer(data=self.world.voxels)
 
     def load_shaders(self):
