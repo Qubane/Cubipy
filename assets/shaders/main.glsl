@@ -1,5 +1,5 @@
 #version 430
-#define CHUNK_SIZE 256
+#define CHUNK_SIZE 512
 #define INDEX_MASK 255
 
 
@@ -84,9 +84,9 @@ int getBlock(ivec3 pos) {
 
 vec3 getNormal(vec3 pos) {
     return vec3(
-        int(getBlock(ivec3(pos.x - 2e-4, pos.y, pos.z)) > 0) - int(getBlock(ivec3(pos.x + 2e-4, pos.y, pos.z)) > 0),
-        int(getBlock(ivec3(pos.x, pos.y - 2e-4, pos.z)) > 0) - int(getBlock(ivec3(pos.x, pos.y + 2e-4, pos.z)) > 0),
-        int(getBlock(ivec3(pos.x, pos.y, pos.z - 2e-4)) > 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + 2e-4)) > 0));
+        int(getBlock(ivec3(pos.x - 2e-3, pos.y, pos.z)) > 0) - int(getBlock(ivec3(pos.x + 2e-3, pos.y, pos.z)) > 0),
+        int(getBlock(ivec3(pos.x, pos.y - 2e-3, pos.z)) > 0) - int(getBlock(ivec3(pos.x, pos.y + 2e-3, pos.z)) > 0),
+        int(getBlock(ivec3(pos.x, pos.y, pos.z - 2e-3)) > 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + 2e-3)) > 0));
 }
 
 
@@ -131,7 +131,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (voxel_id > 0)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * (dist - 1e-4),
+                origin + direction * (dist - 1e-3),
                 dist);
 
         // make a step
@@ -153,7 +153,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (dist > CUBE_DIAG)
             return CollisionInfo(
                 voxel_id,
-                origin + direction * (dist - 1e-4),
+                origin + direction * (dist - 1e-3),
                 dist);
     }
 }
