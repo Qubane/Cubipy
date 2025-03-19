@@ -3,11 +3,9 @@ World related operations
 """
 
 
-from PIL import Image
 import arcade.gl
 import numpy as np
-from numpy import ndarray
-
+from scipy.ndimage import zoom
 from source.options import *
 
 
@@ -94,36 +92,30 @@ def generate_debug(infill: float) -> World:
     return world
 
 
-def generate_landscape(level: int, magnitude: float) -> World:
+def generate_landscape(level: int, magnitude: float, smoothness: int) -> World:
     """
     Temporary. Generates simple landscape
     :param level: sea level
     :param magnitude: magnitude
+    :param smoothness: smoothness
     :return: generated chunk
     """
 
-    octet_count = 6
-
-    noise = [np.random.random((x * 2) ** 2).astype(np.float64) for x in range(2, octet_count * 2 + 2)]
-    height_map = np.zeros([WORLD_SIZE ** 2], dtype=np.float64)
-
-    for octet in range(octet_count):
-        octet_size = octet * 2 + 2
-        for oct_y in range(octet_size):
-            for oct_x in range(octet_size):
-                plotting_size = WORLD_SIZE // octet_size
-                for y in range(plotting_size):
-                    for x in range(plotting_size):
-                        hm_index = (y + oct_y * plotting_size) * WORLD_SIZE + (x + oct_x * plotting_size)
-                        height_map[hm_index] += noise[octet][oct_y * octet_size + oct_x]
-    height_map /= octet_count
-
-    Image.fromarray((height_map * 255).astype(np.uint8).reshape([WORLD_SIZE, WORLD_SIZE])).save("height.png")
+    print("Generating height map...")
+    height_map = np.random.random([WORLD_SIZE // smoothness, WORLD_SIZE // smoothness]).astype(np.float64)
+    height_map = zoom(height_map, smoothness)
+    if height_map.shape[0] != WORLD_SIZE:
+        raise NotImplementedError
+    print("done;\n")
 
     world = World()
+    print("Putting in the blocks...")
     for y in range(WORLD_SIZE):
         for x in range(WORLD_SIZE):
-            height = int((height_map[y * WORLD_SIZE + x] - 0.5) * magnitude + level)
+            height = int((height_map[y][x] - 0.5) * magnitude + level)
             for z in range(height):
                 world.set_unsafe((x, y, z), 1)
+        if y % (WORLD_SIZE // 25) == 0:
+            print(f"{y / WORLD_SIZE * 100:.2f}% done;")
+    print("done;\n")
     return world
