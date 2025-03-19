@@ -3,6 +3,7 @@ World related operations
 """
 
 
+import os
 import arcade.gl
 import numpy as np
 from scipy.ndimage import zoom
@@ -66,6 +67,22 @@ class World:
         if (-1 < position[0] < WORLD_SIZE) and (-1 < position[1] < WORLD_SIZE) and (-1 < position[2] < WORLD_SIZE):
             return self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]]
         return -1
+
+    def save(self, filename: str):
+        """
+        Saves the world to file with given name.
+        :param filename: name of the file
+        """
+
+        np.savez_compressed(filename, self.voxels)
+
+    def load(self, filename: str) -> None:
+        """
+        Loads the world from a file with given name.
+        :param filename: name of the file
+        """
+
+        self.voxels = np.load(filename)
 
 
 class WorldGen:
