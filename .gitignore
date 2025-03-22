@@ -170,3 +170,4 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 /saves/debug.npy
+/saves/capture.png
