@@ -37,7 +37,8 @@ class Application(arcade.Window):
         self.program: arcade.context.Program | None = None
         self.load_shaders()
 
-        self.textures: list = []
+        self.textures: dict[str, arcade.Texture] = {}
+        self.load_textures()
 
         # make graphs
         arcade.enable_timings()
@@ -89,6 +90,13 @@ class Application(arcade.Window):
         """
         Loads textures
         """
+
+        path_offset = len(TEXTURE_DIR.split("/"))
+        for files in os.walk(TEXTURE_DIR):
+            for file in files[2]:
+                full_path = f"{files[0]}/{file}".replace("\\", "/")
+                filepath = full_path.split("/")[path_offset:]
+                self.textures[filepath[0]] = arcade.load_texture(full_path)
 
     # noinspection PyTypeChecker
     def on_draw(self):
