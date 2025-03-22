@@ -6,6 +6,7 @@ Application class
 import os
 import arcade
 import arcade.gl
+from PIL import Image, ImageOps
 from pyglet.event import EVENT_HANDLE_STATE
 from source.world import *
 from source.classes import *
@@ -82,8 +83,8 @@ class Application(arcade.Window):
             color_attachments=[self.ctx.texture(window_size, components=4)],
             depth_attachment=self.ctx.depth_texture(window_size))
 
-        # self.screenshot_buffer = self.ctx.framebuffer(
-        #     color_attachments=[self.ctx.texture((3840, 2160), components=4)])
+        self.screenshot_buffer = self.ctx.framebuffer(
+            color_attachments=[self.ctx.texture((1920, 1080), components=3)])
 
         # load shaders
         self.program = self.ctx.load_program(
@@ -118,6 +119,12 @@ class Application(arcade.Window):
         Takes a high resolution screenshot
         """
 
+        with self.screenshot_buffer.activate():
+            self.render_pass()
+
+        img = Image.frombytes("RGB", (1920, 1080), self.screenshot_buffer.read())
+        ImageOps.flip(img).save(f"{SAVES_DIR}/capture.png")
+
     # noinspection PyTypeChecker
     def render_pass(self):
         """
@@ -146,7 +153,7 @@ class Application(arcade.Window):
 
     def on_draw(self):
         # use main screen buffer
-        self.buffer.activate()
+        self.buffer.activate()  # context manager doesn't work here for some reason? But works without it
         self.render_pass()
 
         # draw performance graphs
@@ -154,6 +161,9 @@ class Application(arcade.Window):
 
     def on_key_press(self, symbol: int, modifiers: int) -> EVENT_HANDLE_STATE:
         self.keys.add(symbol)
+
+        if symbol == arcade.key.F12:
+            self.take_screenshot()
 
     def on_key_release(self, symbol: int, modifiers: int) -> EVENT_HANDLE_STATE:
         self.keys.discard(symbol)
