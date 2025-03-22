@@ -85,11 +85,40 @@ int getBlock(ivec3 pos) {
 }
 
 
-vec3 getNormal(vec3 pos, float offset) {
-    return vec3(
+// more maths
+ivec3 getNormal(vec3 pos, float offset) {
+    return ivec3(
         int(getBlock(ivec3(pos.x - offset, pos.y, pos.z)) > 0) - int(getBlock(ivec3(pos.x + offset, pos.y, pos.z)) > 0),
         int(getBlock(ivec3(pos.x, pos.y - offset, pos.z)) > 0) - int(getBlock(ivec3(pos.x, pos.y + offset, pos.z)) > 0),
         int(getBlock(ivec3(pos.x, pos.y, pos.z - offset)) > 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + offset)) > 0));
+}
+
+
+vec2 getUvCoord(vec3 pos, ivec3 norm) {
+    pos = mod(pos, 1.f);
+
+    if (norm.x != 0) {
+        if (norm.x > 0) {
+            return vec2(1.f - pos.y, pos.z);
+        } else {
+            return vec2(pos.y, pos.z);
+        }
+    }
+    if (norm.y != 0) {
+        if (norm.y > 0) {
+            return vec2(pos.x, pos.z);
+        } else {
+            return vec2(1.f - pos.x, pos.z);
+        }
+    }
+    if (norm.z != 0) {
+        if (norm.z > 0) {
+            return vec2(pos.x, pos.y);
+        } else {
+            return vec2(1.f - pos.x, 1.f - pos.y);
+        }
+    }
+    return vec2(-1.f, -1.f);
 }
 
 
@@ -177,20 +206,21 @@ void main() {
     CollisionInfo initial = castRay(origin, direction);
 
     // calculate distance dependant offsets
-    float distancePrecision = max(initial.distance * initial.distance * 1e-6, 1e-5);
+    float distancePrecision = max(initial.distance * initial.distance * 1e-6, 5e-5);
 
     // cast shadow ray
-    CollisionInfo shadow = castRay(initial.position - u_worldSun * distancePrecision, -u_worldSun);
+    CollisionInfo shadow = castRay(initial.position - u_worldSun * distancePrecision * 2.f, -u_worldSun);
 
     // calculate pixel color
     if (initial.voxelId > 0) {
-        vec3 initialColor = (getNormal(initial.position, distancePrecision * 2.f) + vec3(1)) / 2;
+        ivec3 voxelNormal = getNormal(initial.position, distancePrecision);
+        vec2 textureUv = getUvCoord(initial.position, voxelNormal);
 
         // block is not in shadow
         if (shadow.voxelId == -1) {
-            fragColor = vec4(initialColor, 1.f);
+            fragColor = vec4(texture(u_texture, textureUv).rgb, 1.f);
         } else {
-            fragColor = vec4(initialColor * 0.12f, 1.f);
+            fragColor = vec4(texture(u_texture, textureUv).rgb * 0.12f, 1.f);
         }
 
 //        fragColor = vec4(floor(collision.position) / CHUNK_SIZE, 1.f);
