@@ -114,11 +114,13 @@ class Application(arcade.Window):
                         full_path,
                         filter=(self.ctx.NEAREST, self.ctx.NEAREST))})
 
+    # noinspection PyTypeChecker
     def take_screenshot(self):
         """
         Takes a high resolution screenshot
         """
 
+        self.program.set_uniform_array_safe("u_resolution", (*SCREENSHOT_RESOLUTION, 1.0))
         with self.screenshot_buffer.activate():
             self.render_pass()
 
@@ -136,7 +138,6 @@ class Application(arcade.Window):
 
         # set uniforms that remain the same for on_draw call
         self.program.set_uniform_safe("u_playerFov", self.player.fov)
-        self.program.set_uniform_array_safe("u_resolution", (*self.size, 1.0))
         self.program.set_uniform_array_safe("u_playerPosition", self.player.pos)
         self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
         self.program.set_uniform_array_safe("u_worldSun", self.world.sun)
@@ -151,9 +152,11 @@ class Application(arcade.Window):
         # render image to quad
         self.quad.render(self.program)
 
+    # noinspection PyTypeChecker
     def on_draw(self):
         # use main screen buffer
         self.buffer.activate()  # context manager doesn't work here for some reason? But works without it
+        self.program.set_uniform_array_safe("u_resolution", (*self.size, 1.0))
         self.render_pass()
 
         # draw performance graphs
