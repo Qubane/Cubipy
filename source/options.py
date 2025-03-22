@@ -5,6 +5,7 @@ Configuration file
 
 ASSETS_DIR = "assets"
 SHADER_DIR = f"{ASSETS_DIR}/shaders"
+TEXTURE_DIR = f"{ASSETS_DIR}/textures/"
 
 SAVES_DIR = "saves"
 
