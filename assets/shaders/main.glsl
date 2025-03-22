@@ -18,7 +18,10 @@ struct CollisionInfo {
 out vec4 fragColor;
 
 // uniforms
-uniform vec3 u_Resolution;
+uniform vec3 u_resolution;
+
+// textures
+uniform sampler2D u_texture;
 
 // player uniforms
 uniform float u_playerFov;
@@ -158,7 +161,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
 
 
 void main() {
-    vec2 uv = (gl_FragCoord.xy - u_Resolution.xy * 0.5f) / u_Resolution.y;
+    vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5f) / u_resolution.y;
 
     // calculate distance to chunk border surface
     float chunkDistance = max(distance(u_playerPosition, vec3(CHUNK_SIZE / 2)) - CUBE_DIAG / 2, 0.f);
