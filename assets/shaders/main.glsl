@@ -3,14 +3,15 @@
 #define INDEX_MASK 255
 
 
+// chunk cube diagonal
 const float CUBE_DIAG = pow(CHUNK_SIZE * CHUNK_SIZE * 3, 0.5f);
 
 
 // information about the point of ray collision
 struct CollisionInfo {
-    int voxelId;
-    vec3 position;
-    float distance;
+    int voxelId;        // collided voxel id
+    vec3 position;      // collision position
+    float distance;     // distance from ray origin to collision position
 };
 
 
@@ -38,7 +39,10 @@ layout (std430, binding = 0) buffer voxelData {
 };
 
 
-// rotations
+// simple vector math. Rotations around different axises
+// Uses `point` as a point to rotate
+// Uses `angle` to rotate the point
+// Returns the rotated point
 vec3 rotateX(vec3 point, float angle) {
     vec3 temp = vec3(0);
 
@@ -50,6 +54,9 @@ vec3 rotateX(vec3 point, float angle) {
 }
 
 
+// Uses `point` as a point to rotate
+// Uses `angle` to rotate the point
+// Returns the rotated point
 vec3 rotateY(vec3 point, float angle) {
     vec3 temp = vec3(0);
 
@@ -61,6 +68,9 @@ vec3 rotateY(vec3 point, float angle) {
 }
 
 
+// Uses `point` as a point to rotate
+// Uses `angle` to rotate the point
+// Returns the rotated point
 vec3 rotateZ(vec3 point, float angle) {
     vec3 temp = vec3(0);
 
@@ -72,20 +82,33 @@ vec3 rotateZ(vec3 point, float angle) {
 }
 
 
-// world related
+// get block / voxel
+// Uses `pos` to define integer block position
+// Returns int that defines the block. Returns -1 when block is out of bounds
 int getBlock(ivec3 pos) {
     if (pos.x > -1 && pos.x < CHUNK_SIZE &&
         pos.y > -1 && pos.y < CHUNK_SIZE &&
         pos.z > -1 && pos.z < CHUNK_SIZE) {
+
+        // calculate generic index
         int index = pos.z * CHUNK_SIZE * CHUNK_SIZE + pos.y * CHUNK_SIZE + pos.x;
+
+        // calculate the bitwise mask offset
         int mask_offset = (index & 3) << 3;
+
+        // return the block / voxel
         return (ssbo_voxelData[index >> 2] & (INDEX_MASK << mask_offset)) >> mask_offset;
     }
+
+    // return -1 (void / sky)
     return -1;
 }
 
 
-// more maths
+// voxel normal vector
+// Uses `pos` as a position to check
+// Uses `offset` to define the accuracy of the check
+// Returns normal vector
 ivec3 getNormal(vec3 pos, float offset) {
     return ivec3(
         int(getBlock(ivec3(pos.x - offset, pos.y, pos.z)) > 0) - int(getBlock(ivec3(pos.x + offset, pos.y, pos.z)) > 0),
@@ -94,9 +117,15 @@ ivec3 getNormal(vec3 pos, float offset) {
 }
 
 
+// voxel UV coord
+// Uses `pos` as a position to be converted
+// Uses `norm` as a normal, used to fetch coordinates from `pos` argument
+// Returns UV coord
 vec2 getUvCoord(vec3 pos, ivec3 norm) {
+    // wrap the position to be in 0.0 - 1.0 range
     pos = mod(pos, 1.f);
 
+    // fetch the coordinates in the correct order according to the normal vector
     if (norm.x != 0) {
         if (norm.x > 0) {
             return vec2(1.f - pos.y, pos.z);
@@ -123,6 +152,9 @@ vec2 getUvCoord(vec3 pos, ivec3 norm) {
 
 
 // ray caster
+// Uses `origin` as a starting position for the ray
+// Uses `direction` as a direction in which to cast ray
+// Returns `CollisionInfo`
 CollisionInfo castRay(vec3 origin, vec3 direction) {
     ivec3 rayPostion, rayStep;
     vec3 rayUnit, rayLength;
