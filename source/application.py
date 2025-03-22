@@ -33,6 +33,7 @@ class Application(arcade.Window):
 
         # shader related things
         self.buffer: arcade.context.Framebuffer | None = None
+        self.screenshot_buffer: arcade.context.Framebuffer | None = None
         self.quad: arcade.context.Geometry | None = None
         self.program: arcade.context.Program | None = None
         self.load_shaders()
@@ -81,6 +82,9 @@ class Application(arcade.Window):
             color_attachments=[self.ctx.texture(window_size, components=4)],
             depth_attachment=self.ctx.depth_texture(window_size))
 
+        # self.screenshot_buffer = self.ctx.framebuffer(
+        #     color_attachments=[self.ctx.texture((3840, 2160), components=4)])
+
         # load shaders
         self.program = self.ctx.load_program(
             vertex_shader=f"{SHADER_DIR}/vert.glsl",
@@ -115,7 +119,11 @@ class Application(arcade.Window):
         """
 
     # noinspection PyTypeChecker
-    def on_draw(self):
+    def render_pass(self):
+        """
+        Render pass without any buffer changes
+        """
+
         # clear buffer
         self.clear()
 
@@ -135,6 +143,11 @@ class Application(arcade.Window):
 
         # render image to quad
         self.quad.render(self.program)
+
+    def on_draw(self):
+        # use main screen buffer
+        self.buffer.activate()
+        self.render_pass()
 
         # draw performance graphs
         self.perf_graph_list.draw()
