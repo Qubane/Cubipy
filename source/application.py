@@ -37,7 +37,7 @@ class Application(arcade.Window):
         self.program: arcade.context.Program | None = None
         self.load_shaders()
 
-        self.textures: dict[str, dict[str, arcade.Texture]] = {}
+        self.textures: dict[str, dict[str, arcade.context.Texture2D]] = {}
         self.load_textures()
 
         # make graphs
@@ -104,7 +104,7 @@ class Application(arcade.Window):
 
                 # add texture
                 filename = os.path.splitext(filepath[1])[0]
-                self.textures[filepath[0]].update({filename: arcade.load_texture(full_path)})
+                self.textures[filepath[0]].update({filename: self.ctx.load_texture(full_path)})
 
     # noinspection PyTypeChecker
     def on_draw(self):
@@ -117,6 +117,10 @@ class Application(arcade.Window):
         self.program.set_uniform_array_safe("u_playerPosition", self.player.pos)
         self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
         self.program.set_uniform_array_safe("u_worldSun", self.world.sun)
+
+        # debug texture test
+        self.program.set_uniform_safe("u_texture", 0)
+        self.textures["blocks"]["oak_planks"].use(0)
 
         # bind storage buffer with chunk data
         self.world_buffer.bind_to_storage_buffer(binding=0)
