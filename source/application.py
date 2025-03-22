@@ -109,6 +109,11 @@ class Application(arcade.Window):
                         full_path,
                         filter=(self.ctx.NEAREST, self.ctx.NEAREST))})
 
+    def take_screenshot(self):
+        """
+        Takes a high resolution screenshot
+        """
+
     # noinspection PyTypeChecker
     def on_draw(self):
         # clear buffer
