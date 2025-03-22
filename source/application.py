@@ -84,7 +84,7 @@ class Application(arcade.Window):
             depth_attachment=self.ctx.depth_texture(window_size))
 
         self.screenshot_buffer = self.ctx.framebuffer(
-            color_attachments=[self.ctx.texture((1920, 1080), components=3)])
+            color_attachments=[self.ctx.texture(SCREENSHOT_RESOLUTION, components=3)])
 
         # load shaders
         self.program = self.ctx.load_program(
@@ -122,7 +122,7 @@ class Application(arcade.Window):
         with self.screenshot_buffer.activate():
             self.render_pass()
 
-        img = Image.frombytes("RGB", (1920, 1080), self.screenshot_buffer.read())
+        img = Image.frombytes("RGB", SCREENSHOT_RESOLUTION, self.screenshot_buffer.read())
         ImageOps.flip(img).save(f"{SAVES_DIR}/capture.png")
 
     # noinspection PyTypeChecker
