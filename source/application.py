@@ -37,7 +37,7 @@ class Application(arcade.Window):
         self.program: arcade.context.Program | None = None
         self.load_shaders()
 
-        self.textures: dict[str, arcade.Texture] = {}
+        self.textures: dict[str, dict[str, arcade.Texture]] = {}
         self.load_textures()
 
         # make graphs
@@ -94,9 +94,17 @@ class Application(arcade.Window):
         path_offset = len(TEXTURE_DIR.split("/"))
         for files in os.walk(TEXTURE_DIR):
             for file in files[2]:
+                # make paths
                 full_path = f"{files[0]}/{file}".replace("\\", "/")
                 filepath = full_path.split("/")[path_offset:]
-                self.textures[filepath[0]] = arcade.load_texture(full_path)
+
+                # check if category is present, if not -> add it
+                if filepath[0] not in self.textures:
+                    self.textures[filepath[0]] = {}
+
+                # add texture
+                filename = os.path.splitext(filepath[1])[0]
+                self.textures[filepath[0]].update({filename: arcade.load_texture(full_path)})
 
     # noinspection PyTypeChecker
     def on_draw(self):
@@ -105,7 +113,7 @@ class Application(arcade.Window):
 
         # set uniforms that remain the same for on_draw call
         self.program.set_uniform_safe("u_playerFov", self.player.fov)
-        self.program.set_uniform_array_safe("u_Resolution", (*self.size, 1.0))
+        self.program.set_uniform_array_safe("u_resolution", (*self.size, 1.0))
         self.program.set_uniform_array_safe("u_playerPosition", self.player.pos)
         self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
         self.program.set_uniform_array_safe("u_worldSun", self.world.sun)
