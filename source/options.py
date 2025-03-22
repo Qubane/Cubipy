@@ -3,14 +3,14 @@ Configuration file
 """
 
 
-ASSETS_DIR = "assets"
-SHADER_DIR = f"{ASSETS_DIR}/shaders"
-TEXTURE_DIR = f"{ASSETS_DIR}/textures"
+ASSETS_DIR: str = "assets"
+SHADER_DIR: str = f"{ASSETS_DIR}/shaders"
+TEXTURE_DIR: str = f"{ASSETS_DIR}/textures"
 
-SAVES_DIR = "saves"
+SAVES_DIR: str = "saves"
 
-WORLD_SIZE = 512
-WORLD_LAYER = WORLD_SIZE ** 2
-WORLD_CENTER = WORLD_SIZE // 2
+WORLD_SIZE: int = 512
+WORLD_LAYER: int = WORLD_SIZE ** 2
+WORLD_CENTER: int = WORLD_SIZE // 2
 
 SCREENSHOT_RESOLUTION: tuple[int, int] = (3840, 2160)
