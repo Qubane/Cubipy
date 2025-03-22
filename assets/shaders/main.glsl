@@ -213,15 +213,23 @@ void main() {
 
     // calculate pixel color
     if (initial.voxelId > 0) {
+        // calculate normal and uv texture coordinate for block
         ivec3 voxelNormal = getNormal(initial.position, distancePrecision);
         vec2 textureUv = getUvCoord(initial.position, voxelNormal);
 
-        // block is not in shadow
-        if (shadow.voxelId == -1) {
-            fragColor = vec4(texture(u_texture, textureUv).rgb, 1.f);
-        } else {
-            fragColor = vec4(texture(u_texture, textureUv).rgb * 0.12f, 1.f);
+        // calculate base color
+        vec3 baseColor = texture(u_texture, textureUv).rgb;
+
+        // normal shading
+        baseColor *= smoothstep(1.f, 0.5f, dot(voxelNormal, -u_worldSun));
+
+        // block is in shadow
+        if (shadow.voxelId > 0) {
+            baseColor *= 0.12f;
         }
+
+        // write color
+        fragColor = vec4(baseColor, 1.f);
 
 //        fragColor = vec4(floor(collision.position) / CHUNK_SIZE, 1.f);
 //        fragColor = vec4((getNormal(collision.position) + vec3(1)) / 2, 1.f);
