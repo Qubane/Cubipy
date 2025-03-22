@@ -104,7 +104,10 @@ class Application(arcade.Window):
 
                 # add texture
                 filename = os.path.splitext(filepath[1])[0]
-                self.textures[filepath[0]].update({filename: self.ctx.load_texture(full_path)})
+                self.textures[filepath[0]].update({
+                    filename: self.ctx.load_texture(
+                        full_path,
+                        filter=(self.ctx.NEAREST, self.ctx.NEAREST))})
 
     # noinspection PyTypeChecker
     def on_draw(self):
