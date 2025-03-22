@@ -37,6 +37,8 @@ class Application(arcade.Window):
         self.program: arcade.context.Program | None = None
         self.load_shaders()
 
+        self.textures: list = []
+
         # make graphs
         arcade.enable_timings()
         self.perf_graph_list = arcade.SpriteList()
@@ -82,6 +84,11 @@ class Application(arcade.Window):
         self.program = self.ctx.load_program(
             vertex_shader=f"{SHADER_DIR}/vert.glsl",
             fragment_shader=f"{SHADER_DIR}/main.glsl")
+
+    def load_textures(self):
+        """
+        Loads textures
+        """
 
     # noinspection PyTypeChecker
     def on_draw(self):
