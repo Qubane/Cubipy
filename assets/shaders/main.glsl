@@ -124,15 +124,12 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
     }
 
     // cast ray
-    int voxel_id;
+    int voxelId;
     while (true) {
         // check for block collision
-        voxel_id = getBlock(rayPostion);
-        if (voxel_id > 0)
-            return CollisionInfo(
-                voxel_id,
-                origin + direction * dist,
-                dist);
+        voxelId = getBlock(rayPostion);
+        if (voxelId > 0)
+            break;
 
         // make a step
         if (rayLength.x < rayLength.y && rayLength.x < rayLength.z) {
@@ -151,11 +148,12 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
 
         // check for length; if too far then return
         if (dist > CUBE_DIAG)
-            return CollisionInfo(
-                voxel_id,
-                origin + direction * dist,
-                dist);
+            break;
     }
+    return CollisionInfo(
+        voxelId,
+        origin + direction * dist,
+        dist);
 }
 
 
