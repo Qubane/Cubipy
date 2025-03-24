@@ -40,6 +40,7 @@ class Application(arcade.Window):
         self.load_shaders()
 
         self.textures: dict[str, dict[str, arcade.context.Texture2D]] = {}
+        self.texture_array: arcade.gl.TextureArray | None = None
         self.load_textures()
 
         # make graphs
@@ -96,6 +97,13 @@ class Application(arcade.Window):
         Loads textures
         """
 
+        # set base textures
+        self.textures["blocks"] = {}
+
+        # texture size
+        texture_size = 0
+
+        # iterate through assets
         path_offset = len(TEXTURE_DIR.split("/"))
         for files in os.walk(TEXTURE_DIR):
             for file in files[2]:
@@ -109,10 +117,17 @@ class Application(arcade.Window):
 
                 # add texture
                 filename = os.path.splitext(filepath[1])[0]
-                self.textures[filepath[0]].update({
-                    filename: self.ctx.load_texture(
-                        full_path,
-                        filter=(self.ctx.NEAREST, self.ctx.NEAREST))})
+                texture = self.ctx.load_texture(full_path, filter=(self.ctx.NEAREST, self.ctx.NEAREST))
+                self.textures[filepath[0]].update({filename: texture})
+
+                texture_size = max(texture_size, texture.width)
+
+        # create texture array
+        self.texture_array = self.ctx.texture_array(
+            (texture_size, texture_size, len(self.textures["blocks"])))
+
+        for level, texture in enumerate(self.textures["blocks"].values()):
+            self.texture_array.write(texture.read(), level)
 
     # noinspection PyTypeChecker
     def take_screenshot(self):
@@ -142,9 +157,9 @@ class Application(arcade.Window):
         self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
         self.program.set_uniform_array_safe("u_worldSun", self.world.sun)
 
-        # debug texture test
-        self.program.set_uniform_safe("u_texture", 0)
-        self.textures["blocks"]["oak_planks"].use(0)
+        # bind texture array
+        self.program.set_uniform_safe("u_textureArray", 0)
+        self.texture_array.use(0)
 
         # bind storage buffer with chunk data
         self.world_buffer.bind_to_storage_buffer(binding=0)
