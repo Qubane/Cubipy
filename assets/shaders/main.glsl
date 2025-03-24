@@ -22,7 +22,7 @@ out vec4 fragColor;
 uniform vec3 u_resolution;
 
 // textures
-uniform sampler2D u_texture;
+uniform sampler2DArray u_textureArray;
 
 // player uniforms
 uniform float u_playerFov;
@@ -250,7 +250,7 @@ void main() {
         vec2 textureUv = getUvCoord(initial.position, voxelNormal);
 
         // calculate base color
-        vec3 baseColor = texture(u_texture, textureUv).rgb;
+        vec3 baseColor = texture(u_textureArray, vec3(textureUv, initial.voxelId - 1)).rgb;
 
         // normal shading
         baseColor *= smoothstep(1.f, 0.5f, dot(voxelNormal, -u_worldSun));
