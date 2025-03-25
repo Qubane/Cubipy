@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "texture": {
+    "X+": "grass_block_side",
+    "X-": "grass_block_side",
+    "Y+": "grass_block_side",
+    "Y-": "grass_block_side",
+    "Z+": "grass_block_top",
+    "Z-": "dirt_block"
+  }
+}
