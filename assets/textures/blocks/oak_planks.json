@@ -1,0 +1,11 @@
+{
+  "id": 10,
+  "texture": {
+    "X+": "oak_planks",
+    "X-": "oak_planks",
+    "Y+": "oak_planks",
+    "Y-": "oak_planks",
+    "Z+": "oak_planks",
+    "Z-": "oak_planks"
+  }
+}
