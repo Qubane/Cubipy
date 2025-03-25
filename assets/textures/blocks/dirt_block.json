@@ -1,0 +1,11 @@
+{
+  "id": 2,
+  "texture": {
+    "X+": "dirt_block",
+    "X-": "dirt_block",
+    "Y+": "dirt_block",
+    "Y-": "dirt_block",
+    "Z+": "dirt_block",
+    "Z-": "dirt_block"
+  }
+}
