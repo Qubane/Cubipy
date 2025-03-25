@@ -4,8 +4,6 @@ Application class
 
 
 import os
-import json
-import glob
 import arcade
 import arcade.gl
 from PIL import Image, ImageOps
@@ -13,6 +11,7 @@ from pyglet.event import EVENT_HANDLE_STATE
 from source.world import *
 from source.classes import *
 from source.options import *
+from source.textures import *
 
 
 class Application(arcade.Window):
@@ -41,10 +40,8 @@ class Application(arcade.Window):
         self.program: arcade.context.Program | None = None
         self.load_shaders()
 
-        self.textures: dict[str, dict[str, arcade.context.Texture2D]] = {}
-        self.texture_mapping: dict[int, dict[str, int | dict]] = {}
-        self.block_texture_array: arcade.gl.TextureArray | None = None
-        self.load_textures()
+        self.texture_manager: TextureManager = TextureManager()
+        self.texture_manager.load_textures()
 
         # make graphs
         arcade.enable_timings()
@@ -94,40 +91,6 @@ class Application(arcade.Window):
         self.program = self.ctx.load_program(
             vertex_shader=f"{SHADER_DIR}/vert.glsl",
             fragment_shader=f"{SHADER_DIR}/main.glsl")
-
-    def load_textures(self):
-        """
-        Loads textures
-        """
-
-        # iterate through assets
-        configs = []
-        for file in glob.glob(TEXTURE_DIR + "/**/*", recursive=True):
-            # skip directories
-            if os.path.isdir(file):
-                continue
-
-            # make file and texture paths
-            filepath = file.replace("\\", "/")
-            texture_path = filepath[len(TEXTURE_DIR)+1:].split("/")
-
-            # skip .json for now
-            if os.path.splitext(file)[1] == ".json":
-                configs.append(filepath)
-                continue
-
-            # if category doesn't exist -> make one
-            if texture_path[0] not in self.textures:
-                self.textures[texture_path[0]] = {}
-
-            texture = self.ctx.load_texture(filepath)
-            self.textures[texture_path[0]].update({os.path.splitext(texture_path[1])[0]: texture})
-
-        for config in configs:
-            with open(config, "r", encoding="ascii") as f:
-                config_data = json.load(f)
-
-            self.texture_mapping[config_data["id"]] = config_data
 
     # noinspection PyTypeChecker
     def take_screenshot(self):
