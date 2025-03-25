@@ -42,7 +42,7 @@ class Application(arcade.Window):
         self.load_shaders()
 
         self.textures: dict[str, dict[str, arcade.context.Texture2D]] = {}
-        self.texture_table: dict[int, dict[str, int | dict]] = {}
+        self.texture_mapping: dict[int, dict[str, int | dict]] = {}
         self.block_texture_array: arcade.gl.TextureArray | None = None
         self.load_textures()
 
@@ -127,10 +127,7 @@ class Application(arcade.Window):
             with open(config, "r", encoding="ascii") as f:
                 config_data = json.load(f)
 
-            self.texture_table[config_data["id"]] = config_data
-
-        print(self.textures)
-        print(self.texture_table)
+            self.texture_mapping[config_data["id"]] = config_data
 
     # noinspection PyTypeChecker
     def take_screenshot(self):
