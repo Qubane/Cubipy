@@ -4,6 +4,8 @@ Application class
 
 
 import os
+import json
+import glob
 import arcade
 import arcade.gl
 from PIL import Image, ImageOps
@@ -40,7 +42,8 @@ class Application(arcade.Window):
         self.load_shaders()
 
         self.textures: dict[str, dict[str, arcade.context.Texture2D]] = {}
-        self.texture_array: arcade.gl.TextureArray | None = None
+        self.texture_table: dict[int, dict[str, int | dict]] = {}
+        self.block_texture_array: arcade.gl.TextureArray | None = None
         self.load_textures()
 
         # make graphs
@@ -97,37 +100,37 @@ class Application(arcade.Window):
         Loads textures
         """
 
-        # set base textures
-        self.textures["blocks"] = {}
-
-        # texture size
-        texture_size = 0
-
         # iterate through assets
-        path_offset = len(TEXTURE_DIR.split("/"))
-        for files in os.walk(TEXTURE_DIR):
-            for file in files[2]:
-                # make paths
-                full_path = f"{files[0]}/{file}".replace("\\", "/")
-                filepath = full_path.split("/")[path_offset:]
+        configs = []
+        for file in glob.glob(TEXTURE_DIR + "/**/*", recursive=True):
+            # skip directories
+            if os.path.isdir(file):
+                continue
 
-                # check if category is present, if not -> add it
-                if filepath[0] not in self.textures:
-                    self.textures[filepath[0]] = {}
+            # make file and texture paths
+            filepath = file.replace("\\", "/")
+            texture_path = filepath[len(TEXTURE_DIR)+1:].split("/")
 
-                # add texture
-                filename = os.path.splitext(filepath[1])[0]
-                texture = self.ctx.load_texture(full_path, filter=(self.ctx.NEAREST, self.ctx.NEAREST))
-                self.textures[filepath[0]].update({filename: texture})
+            # skip .json for now
+            if os.path.splitext(file)[1] == ".json":
+                configs.append(filepath)
+                continue
 
-                texture_size = max(texture_size, texture.width)
+            # if category doesn't exist -> make one
+            if texture_path[0] not in self.textures:
+                self.textures[texture_path[0]] = {}
 
-        # create texture array
-        self.texture_array = self.ctx.texture_array(
-            (texture_size, texture_size, len(self.textures["blocks"])))
+            texture = self.ctx.load_texture(filepath)
+            self.textures[texture_path[0]].update({os.path.splitext(texture_path[1])[0]: texture})
 
-        for level, texture in enumerate(self.textures["blocks"].values()):
-            self.texture_array.write(texture.read(), level)
+        for config in configs:
+            with open(config, "r", encoding="ascii") as f:
+                config_data = json.load(f)
+
+            self.texture_table[config_data["id"]] = config_data
+
+        print(self.textures)
+        print(self.texture_table)
 
     # noinspection PyTypeChecker
     def take_screenshot(self):
@@ -159,7 +162,7 @@ class Application(arcade.Window):
 
         # bind texture array
         self.program.set_uniform_safe("u_textureArray", 0)
-        self.texture_array.use(0)
+        self.block_texture_array.use(0)
 
         # bind storage buffer with chunk data
         self.world_buffer.bind_to_storage_buffer(binding=0)
