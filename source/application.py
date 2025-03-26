@@ -122,7 +122,7 @@ class Application(arcade.Window):
 
         # bind texture array
         self.program.set_uniform_safe("u_textureArray", 0)
-        self.block_texture_array.use(0)
+        self.texture_manager.texture_array.use(0)
 
         # bind storage buffer with chunk data
         self.world_buffer.bind_to_storage_buffer(binding=0)
