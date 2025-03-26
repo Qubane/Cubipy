@@ -2,7 +2,6 @@
 Texture manager
 """
 
-
 import os
 import json
 import glob
@@ -93,3 +92,13 @@ class TextureManager:
         """
 
         self.raw_texture_mapping = np.zeros(256 * 6, dtype=np.uint32)
+        for block_id, block_mapping in self.block_texture_mapping.items():
+            texture_mapping = list(map(
+                lambda x: self._named_mapping["blocks"][x], [
+                    block_mapping["texture"]["X+"],
+                    block_mapping["texture"]["X-"],
+                    block_mapping["texture"]["Y+"],
+                    block_mapping["texture"]["Y-"],
+                    block_mapping["texture"]["Z+"],
+                    block_mapping["texture"]["Z-"]]))
+            self.raw_texture_mapping[block_id * 6: block_id * 6 + 6] = texture_mapping
