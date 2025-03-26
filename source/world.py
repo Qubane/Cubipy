@@ -16,7 +16,7 @@ class World:
     def __init__(self):
         self.voxels: np.ndarray = np.zeros(WORLD_SIZE ** 3, dtype=np.uint8)
 
-        self.sun: tuple[float, float, float] = (1, 2, -2)
+        self.sun: tuple[float, float, float] = (1, 2, -3)
         length = (self.sun[0]**2 + self.sun[1]**2 + self.sun[2]**2) ** 0.5
         self.sun = (self.sun[0] / length, self.sun[1] / length, self.sun[2] / length)
 
@@ -143,7 +143,12 @@ class WorldGen:
             for x in range(WORLD_SIZE):
                 height = int((height_map[y][x] - 0.5) * magnitude + level)
                 for z in range(height):
-                    world.set_unsafe((x, y, z), 1)
+                    block_id = 0
+                    if z == height - 1:  # grass
+                        block_id = 1
+                    else:  # dirt
+                        block_id = 2
+                    world.set_unsafe((x, y, z), block_id)
             if y % (WORLD_SIZE // 25) == 0:
                 print(f"{y / WORLD_SIZE * 100:.2f}% done;")
         print("done;\n")
