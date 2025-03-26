@@ -86,3 +86,10 @@ class TextureManager:
             (texture_size, texture_size, texture_amount),
             filter=(self.ctx.NEAREST, self.ctx.NEAREST),
             data=texture_data)
+
+    def generate_raw_texture_mapping(self):
+        """
+        Generates 'self.raw_texture_mapping' via
+        """
+
+        self.raw_texture_mapping = np.zeros(256 * 6, dtype=np.uint32)
