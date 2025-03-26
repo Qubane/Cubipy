@@ -152,6 +152,32 @@ vec2 getUvCoord(vec3 pos, ivec3 norm) {
 }
 
 
+int getLayerByVoxel(int voxelId, ivec3 norm) {
+    if (norm.x != 0) {
+        if (norm.x > 0) {
+            return u_textureMapping[voxelId * 6];
+        } else {
+            return u_textureMapping[voxelId * 6 + 1];
+        }
+    }
+    if (norm.y != 0) {
+        if (norm.y > 0) {
+            return u_textureMapping[voxelId * 6 + 2];
+        } else {
+            return u_textureMapping[voxelId * 6 + 3];
+        }
+    }
+    if (norm.z != 0) {
+        if (norm.z > 0) {
+            return u_textureMapping[voxelId * 6 + 4];
+        } else {
+            return u_textureMapping[voxelId * 6 + 5];
+        }
+    }
+    return 0;
+}
+
+
 // ray caster
 // Uses `origin` as a starting position for the ray
 // Uses `direction` as a direction in which to cast ray
@@ -251,7 +277,7 @@ void main() {
         vec2 textureUv = getUvCoord(initial.position, voxelNormal);
 
         // calculate base color
-        vec3 baseColor = texture(u_textureArray, vec3(textureUv, initial.voxelId - 1)).rgb;
+        vec3 baseColor = texture(u_textureArray, vec3(textureUv, getLayerByVoxel(initial.voxelId, voxelNormal))).rgb;
 
         // normal shading
         // normal affect range 0.25 - 0.75
