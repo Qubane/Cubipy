@@ -3,11 +3,16 @@ Configuration file
 """
 
 
+import os
+
+
 ASSETS_DIR: str = "assets"
 SHADER_DIR: str = f"{ASSETS_DIR}/shaders"
 TEXTURE_DIR: str = f"{ASSETS_DIR}/textures"
 
-SAVES_DIR: str = "saves"
+SAVES_DIR: str = "saves"  # not guaranteed to be created
+if not os.path.isdir(SAVES_DIR):
+    os.makedirs(SAVES_DIR)
 
 WORLD_SIZE: int = 512
 WORLD_LAYER: int = WORLD_SIZE ** 2
