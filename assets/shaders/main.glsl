@@ -22,6 +22,7 @@ out vec4 fragColor;
 uniform vec3 u_resolution;
 
 // textures
+uniform int u_textureMapping;
 uniform sampler2DArray u_textureArray;
 
 // player uniforms
