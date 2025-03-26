@@ -280,12 +280,12 @@ void main() {
         vec3 baseColor = texture(u_textureArray, vec3(textureUv, getLayerByVoxel(initial.voxelId, voxelNormal))).rgb;
 
         // normal shading
-        // clamp values between 0.0 and 1.0
-        baseColor *= max(0.f, dot(voxelNormal, -u_worldSun));
+        // clamp values between 0.5 and 1.0
+        baseColor *= max(0.5f, dot(voxelNormal, -u_worldSun));
 
         // block is in shadow
         if (shadow.voxelId > 0) {
-            baseColor *= 0.12f;
+            baseColor *= 0.3f;
         }
 
         // write color
