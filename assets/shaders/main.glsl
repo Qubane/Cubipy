@@ -22,7 +22,7 @@ out vec4 fragColor;
 uniform vec3 u_resolution;
 
 // textures
-uniform int u_textureMapping;
+uniform int u_textureMapping[256 * 6];  // 256 blocks with 6 sides per block
 uniform sampler2DArray u_textureArray;
 
 // player uniforms
