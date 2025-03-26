@@ -42,6 +42,7 @@ class Application(arcade.Window):
 
         self.texture_manager: TextureManager = TextureManager()
         self.texture_manager.load_textures()
+        self.texture_manager.generate_raw_texture_mapping()
 
         # make graphs
         arcade.enable_timings()
@@ -119,6 +120,7 @@ class Application(arcade.Window):
         self.program.set_uniform_array_safe("u_playerPosition", self.player.pos)
         self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
         self.program.set_uniform_array_safe("u_worldSun", self.world.sun)
+        self.program.set_uniform_array_safe("u_textureMapping", self.texture_manager.raw_texture_mapping)
 
         # bind texture array
         self.program.set_uniform_safe("u_textureArray", 0)
