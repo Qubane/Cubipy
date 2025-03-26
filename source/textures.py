@@ -73,10 +73,13 @@ class TextureManager:
                 config_data = json.load(f)
             self.block_texture_mapping[config_data["id"]] = config_data
 
+        # fill it with textures
+        texture_data = b''
+        for level, texture in enumerate(self.texture_list):
+            texture_data += texture.read()
+
         # create texture array
         self.texture_array = self.ctx.texture_array(
-            (texture_size, texture_size, texture_amount), filter=(self.ctx.NEAREST, self.ctx.NEAREST))
-
-        # fill it with textures
-        for level, texture in enumerate(self.texture_list):
-            self.texture_array.write(texture.read(), level=level)
+            (texture_size, texture_size, texture_amount),
+            filter=(self.ctx.NEAREST, self.ctx.NEAREST),
+            data=texture_data)
