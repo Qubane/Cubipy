@@ -8,6 +8,7 @@ import json
 import glob
 import arcade
 import arcade.gl
+import numpy as np
 from source.options import *
 
 
@@ -24,6 +25,8 @@ class TextureManager:
         self._named_mapping: dict[str, dict[str, int]] = {}
 
         self.block_texture_mapping: dict[int, dict[str, int | dict]] = {}
+
+        self.raw_texture_mapping: np.ndarray | None = None
 
     def load_textures(self):
         """
