@@ -81,6 +81,10 @@ class World:
 
         self.voxels = np.load(filename)
 
+        # Check correct world size
+        if self.voxels.shape != (WORLD_SIZE**3,):
+            raise Exception("Incorrect world size")
+
 
 class WorldGen:
     """
