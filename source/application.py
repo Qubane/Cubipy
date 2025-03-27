@@ -67,8 +67,9 @@ class Application(arcade.Window):
         self.world: World = World()
         try:
             self.world.load(debug_world_name)
+            print("Successfully loaded the save file!")
         except (WorldGenSizeError, FileNotFoundError):
-            print("Unable to load save file; generating new one instead")
+            print("Unable to load save file; generating new one instead...")
             self.world: World = WorldGen.generate_landscape(WORLD_SIZE // 2, 32)
             self.world.save(debug_world_name)
         self.world_buffer = self.ctx.buffer(data=self.world.voxels, usage="static")
