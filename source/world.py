@@ -173,3 +173,9 @@ class Ray:
         self.integer_position: list[int] = [0, 0, 0]
         self.float_position: list[float] = [0, 0, 0]
         self.length: float = 0
+
+    def cast(self, world: World) -> "Ray":
+        """
+        Casts the ray for the given world.
+        :returns: ray
+        """
