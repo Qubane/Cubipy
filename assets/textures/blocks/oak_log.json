@@ -1,0 +1,11 @@
+{
+  "id": 9,
+  "texture": {
+    "X+": "oak_log_side",
+    "X-": "oak_log_side",
+    "Y+": "oak_log_side",
+    "Y-": "oak_log_side",
+    "Z+": "oak_log_top",
+    "Z-": "oak_log_top"
+  }
+}
