@@ -18,5 +18,7 @@ uniform vec3 u_worldSun;
 
 
 void main() {
+    vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5f) / u_resolution.y;
 
+    fragColor = vec4(uv, 0, 1);
 }
