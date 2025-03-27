@@ -4,11 +4,11 @@ Main file
 
 
 from source.application import Application
-from source.options import WINDOW_RESOLUTION
+from source.options import GAME_TITLE, WINDOW_RESOLUTION
 
 
 def main():
-    app = Application(*WINDOW_RESOLUTION, title="Cubipy")
+    app = Application(*WINDOW_RESOLUTION, GAME_TITLE)
     app.run()
 
 
