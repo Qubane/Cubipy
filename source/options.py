@@ -16,7 +16,7 @@ SAVES_DIR: str = "saves"  # not guaranteed to be created
 if not os.path.isdir(SAVES_DIR):
     os.makedirs(SAVES_DIR)
 
-WORLD_SIZE: int = 512
+WORLD_SIZE: int = 256
 WORLD_LAYER: int = WORLD_SIZE ** 2
 WORLD_CENTER: int = WORLD_SIZE // 2
 
