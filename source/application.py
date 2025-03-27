@@ -33,7 +33,7 @@ class Application(arcade.Window):
 
         # center the window
         self.center_window()
-        self.set_draw_rate(WINDOW_FRAMERATE)
+        self.set_draw_rate(1 / WINDOW_FRAMERATE)
 
         # shader related things
         self.buffer: arcade.context.Framebuffer | None = None
