@@ -22,7 +22,7 @@ vec3 getColor(int index) {
     return vec3(
         float(u_skyGradient[index] >> 16) / 255.f,
         float((u_skyGradient[index] >> 8) & 0xff) / 255.f,
-        float(u_skyGradient[index] & 0xff)) / 255.f;
+        float(u_skyGradient[index] & 0xff) / 255.f);
 }
 
 
