@@ -6,6 +6,7 @@ World related operations
 import numpy as np
 from scipy.ndimage import zoom
 from source.options import *
+from source.exceptions import *
 
 
 class World:
@@ -83,7 +84,7 @@ class World:
 
         # Check correct world size
         if self.voxels.shape != (WORLD_SIZE**3,):
-            raise Exception("Incorrect world size")
+            raise WorldGenSizeError("Incorrect world size")
 
 
 class WorldGen:
