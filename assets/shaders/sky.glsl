@@ -11,7 +11,7 @@ uniform vec3 u_resolution;
 uniform vec2 u_playerDirection;
 
 // sky uniforms
-uniform vec2 u_skyGradient;
+uniform int u_skyGradient[5];
 
 // world uniforms
 uniform vec3 u_worldSun;
