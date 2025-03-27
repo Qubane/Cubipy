@@ -39,9 +39,12 @@ class Application(arcade.Window):
         self.buffer: arcade.context.Framebuffer | None = None
         self.screenshot_buffer: arcade.context.Framebuffer | None = None
         self.quad: arcade.context.Geometry | None = None
-        self.program: arcade.context.Program | None = None
+
+        self.chunk_render_shader: arcade.context.Program | None = None
+        self.sky_render_shader: arcade.context.Program | None = None
         self.load_shaders()
 
+        # texture related
         self.texture_manager: TextureManager = TextureManager()
         self.texture_manager.load_textures()
         self.texture_manager.generate_raw_texture_mapping()
@@ -93,9 +96,13 @@ class Application(arcade.Window):
             color_attachments=[self.ctx.texture(SCREENSHOT_RESOLUTION, components=3)])
 
         # load shaders
-        self.program = self.ctx.load_program(
+        self.chunk_render_shader = self.ctx.load_program(
             vertex_shader=f"{SHADER_DIR}/vert.glsl",
             fragment_shader=f"{SHADER_DIR}/main.glsl")
+
+        self.sky_render_shader = self.ctx.load_program(
+            vertex_shader=f"{SHADER_DIR}/vert.glsl",
+            fragment_shader=f"{SHADER_DIR}/sky.glsl")
 
     # noinspection PyTypeChecker
     def take_screenshot(self):
@@ -103,7 +110,7 @@ class Application(arcade.Window):
         Takes a high resolution screenshot
         """
 
-        self.program.set_uniform_array_safe("u_resolution", (*SCREENSHOT_RESOLUTION, 1.0))
+        self.chunk_render_shader.set_uniform_array_safe("u_resolution", (*SCREENSHOT_RESOLUTION, 1.0))
         with self.screenshot_buffer.activate():
             self.render_pass()
 
@@ -120,27 +127,27 @@ class Application(arcade.Window):
         self.clear()
 
         # set uniforms that remain the same for on_draw call
-        self.program.set_uniform_safe("u_playerFov", self.player.fov)
-        self.program.set_uniform_array_safe("u_playerPosition", self.player.pos)
-        self.program.set_uniform_array_safe("u_playerDirection", self.player.rot)
-        self.program.set_uniform_array_safe("u_worldSun", self.world.sun)
-        self.program.set_uniform_array_safe("u_textureMapping", self.texture_manager.raw_texture_mapping)
+        self.chunk_render_shader.set_uniform_safe("u_playerFov", self.player.fov)
+        self.chunk_render_shader.set_uniform_array_safe("u_playerPosition", self.player.pos)
+        self.chunk_render_shader.set_uniform_array_safe("u_playerDirection", self.player.rot)
+        self.chunk_render_shader.set_uniform_array_safe("u_worldSun", self.world.sun)
+        self.chunk_render_shader.set_uniform_array_safe("u_textureMapping", self.texture_manager.raw_texture_mapping)
 
         # bind texture array
-        self.program.set_uniform_safe("u_textureArray", 0)
+        self.chunk_render_shader.set_uniform_safe("u_textureArray", 0)
         self.texture_manager.texture_array.use(0)
 
         # bind storage buffer with chunk data
         self.world_buffer.bind_to_storage_buffer(binding=0)
 
         # render image to quad
-        self.quad.render(self.program)
+        self.quad.render(self.chunk_render_shader)
 
     # noinspection PyTypeChecker
     def on_draw(self):
         # use main screen buffer
         self.buffer.activate()  # context manager doesn't work here for some reason? But works without it
-        self.program.set_uniform_array_safe("u_resolution", (*self.size, 1.0))
+        self.chunk_render_shader.set_uniform_array_safe("u_resolution", (*self.size, 1.0))
         self.render_pass()
 
         # draw performance graphs
