@@ -159,3 +159,17 @@ class WorldGen:
         print("done;\n")
 
         return world
+
+
+class Ray:
+    """
+    Ray class
+    """
+
+    def __init__(self, origin: tuple[float, float, float], direction: tuple[float, float, float]):
+        self.origin: tuple[float, float, float] = origin
+        self.direction: tuple[float, float, float] = direction
+
+        self.integer_position: list[int] = [0, 0, 0]
+        self.float_position: list[float] = [0, 0, 0]
+        self.length: float = 0
