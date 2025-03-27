@@ -12,6 +12,7 @@ from source.world import *
 from source.classes import *
 from source.options import *
 from source.textures import *
+from source.exceptions import *
 
 
 class Application(arcade.Window):
@@ -64,11 +65,12 @@ class Application(arcade.Window):
         # world
         debug_world_name = f"{SAVES_DIR}/debug.npy"
         self.world: World = World()
-        if not os.path.isfile(debug_world_name):
+        try:
+            self.world.load(debug_world_name)
+        except (WorldGenSizeError, FileNotFoundError):
+            print("Unable to load save file; generating new one instead")
             self.world: World = WorldGen.generate_landscape(WORLD_SIZE // 2, 32)
             self.world.save(debug_world_name)
-        else:
-            self.world.load(debug_world_name)
         self.world_buffer = self.ctx.buffer(data=self.world.voxels, usage="static")
 
     def load_shaders(self):
