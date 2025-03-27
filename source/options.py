@@ -6,6 +6,8 @@ Configuration file
 import os
 
 
+GAME_TITLE = "Pythagonal"
+
 ASSETS_DIR: str = "assets"
 SHADER_DIR: str = f"{ASSETS_DIR}/shaders"
 TEXTURE_DIR: str = f"{ASSETS_DIR}/textures"
