@@ -1,5 +1,5 @@
 #version 430
-#define CHUNK_SIZE 512
+#define CHUNK_SIZE 256
 #define INDEX_MASK 255
 
 
