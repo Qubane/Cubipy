@@ -110,10 +110,15 @@ class Application(arcade.Window):
         Takes a high resolution screenshot
         """
 
+        # set resolution related uniforms
         self.chunk_render_shader.set_uniform_array_safe("u_resolution", (*SCREENSHOT_RESOLUTION, 1.0))
+        self.sky_render_shader.set_uniform_array_safe("u_resolution", (*SCREENSHOT_RESOLUTION, 1.0))
+
+        # render image to screenshot buffer
         with self.screenshot_buffer.activate():
             self.render_pass()
 
+        # write buffer to image and store it in 'SAVES_DIR'
         img = Image.frombytes("RGB", SCREENSHOT_RESOLUTION, self.screenshot_buffer.read())
         ImageOps.flip(img).save(f"{SAVES_DIR}/capture.png")
 
@@ -127,11 +132,19 @@ class Application(arcade.Window):
         self.clear()
 
         # set uniforms that remain the same for on_draw call
+        # for chunk renderer
         self.chunk_render_shader.set_uniform_safe("u_playerFov", self.player.fov)
         self.chunk_render_shader.set_uniform_array_safe("u_playerPosition", self.player.pos)
         self.chunk_render_shader.set_uniform_array_safe("u_playerDirection", self.player.rot)
         self.chunk_render_shader.set_uniform_array_safe("u_worldSun", self.world.sun)
         self.chunk_render_shader.set_uniform_array_safe("u_textureMapping", self.texture_manager.raw_texture_mapping)
+
+        # for sky renderer
+        self.sky_render_shader.set_uniform_array_safe("u_worldSun", self.world.sun)
+        self.sky_render_shader.set_uniform_array_safe(
+            "u_skyGradient",
+            [int(x, 16) for x in ["9BC8DC", "8CBED4", "77ACC5", "689CBA", "5788AE"]])
+        self.sky_render_shader.set_uniform_array_safe("u_playerDirection", self.player.rot)
 
         # bind texture array
         self.chunk_render_shader.set_uniform_safe("u_textureArray", 0)
@@ -140,14 +153,23 @@ class Application(arcade.Window):
         # bind storage buffer with chunk data
         self.world_buffer.bind_to_storage_buffer(binding=0)
 
+        # turn on blending
+        self.ctx.enable(self.ctx.BLEND)
+
         # render image to quad
+        self.quad.render(self.sky_render_shader)
         self.quad.render(self.chunk_render_shader)
 
     # noinspection PyTypeChecker
     def on_draw(self):
         # use main screen buffer
         self.buffer.activate()  # context manager doesn't work here for some reason? But works without it
+
+        # set resolution related uniforms
         self.chunk_render_shader.set_uniform_array_safe("u_resolution", (*self.size, 1.0))
+        self.sky_render_shader.set_uniform_array_safe("u_resolution", (*SCREENSHOT_RESOLUTION, 1.0))
+
+        # make a render pass
         self.render_pass()
 
         # draw performance graphs
