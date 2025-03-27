@@ -28,14 +28,14 @@ vec3 getColor(int index) {
 
 void main() {
     vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5f) / u_resolution.y;
-    float t = gl_FragCoord.y / u_resolution.y;
+    float t = (sin(u_playerDirection.x + (gl_FragCoord.y * 3.14159265f / u_resolution.y)) + 1.f) / 2.f;
 
-    int skySliceIndex = int(t * GRAD_LEN);
+    int skySliceIndex = int(t * (GRAD_LEN - 1));
 
     vec3 startColor = getColor(skySliceIndex);
     vec3 endColor = getColor(skySliceIndex + 1);
 
-    float color_t = mod(t, 1.f / GRAD_LEN) * GRAD_LEN;
+    float color_t = mod(t, 1.f / (GRAD_LEN - 1)) * (GRAD_LEN - 1);
 
-    fragColor = vec4(vec3(startColor * (1 - color_t) + endColor * color_t), 1.f);
+    fragColor = vec4(vec3(startColor * (1.f - color_t) + endColor * color_t), 1.f);
 }
