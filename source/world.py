@@ -5,6 +5,7 @@ World related operations
 
 import numpy as np
 from scipy.ndimage import zoom
+from source.blocks import *
 from source.options import *
 from source.exceptions import *
 
@@ -31,13 +32,18 @@ class World:
 
         self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]] = value
 
-    def set(self, position: tuple[int, int, int], value: int) -> bool:
+    def set(self, position: tuple[int, int, int], value: int | str) -> bool:
         """
-        Sets block at given XYZ to given value.
+        High level method that sets block at given XYZ to given value.
         :param position: block position
         :param value: id to set
         :return: True when block was set, False when block was out of bounds
         """
+
+        if isinstance(value, str):
+            value = Blocks.named.get(value)
+            if value is None:
+                return False
 
         if (-1 < position[0] < WORLD_SIZE) and (-1 < position[1] < WORLD_SIZE) and (-1 < position[2] < WORLD_SIZE):
             self.voxels[position[2] * WORLD_LAYER + position[1] * WORLD_SIZE + position[0]] = value
