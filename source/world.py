@@ -154,7 +154,6 @@ class WorldGen:
             for x in range(WORLD_SIZE):
                 height = int((height_map[y][x] - 0.5) * magnitude + level)
                 for z in range(height):
-                    block_id = 0
                     if z == height - 1:  # grass
                         block_id = 1
                     else:  # dirt
