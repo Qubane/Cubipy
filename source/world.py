@@ -3,6 +3,7 @@ World related operations
 """
 
 
+import random
 import numpy as np
 from scipy.ndimage import zoom
 from source.blocks import *
@@ -155,15 +156,34 @@ class WorldGen:
                 height = int((height_map[y][x] - 0.5) * magnitude + level)
                 for z in range(height):
                     if z == height - 1:  # grass
-                        block_id = 1
+                        world.set((x, y, z), "grass_block")
                     else:  # dirt
-                        block_id = 2
-                    world.set_unsafe((x, y, z), block_id)
+                        world.set((x, y, z), "dirt_block")
+                if random.random() > 0.9:
+                    WorldGen.generate_tree(world, (x, y, height))
             if y % (WORLD_SIZE // 25) == 0:
                 print(f"{y / WORLD_SIZE * 100:.2f}% done;")
         print("done;\n")
 
         return world
+
+    @staticmethod
+    def generate_tree(world: World, pos: tuple[int, int, int]):
+        """
+        Generates a tree at given position
+        """
+
+        height = int(random.random() * 4) + 3
+        leaves_height = random.random() * 2 + 1
+        for i in range(height):
+            world.set((pos[0], pos[1], pos[2] + i), "oak_logs")
+
+            if i >= leaves_height:
+                world.set((pos[0], pos[1] + 1, pos[2] + i), "oak_leaves")
+                world.set((pos[0], pos[1] - 1, pos[2] + i), "oak_leaves")
+                world.set((pos[0] + 1, pos[1], pos[2] + i), "oak_leaves")
+                world.set((pos[0] - 1, pos[1], pos[2] + i), "oak_leaves")
+        world.set((pos[0], pos[1], pos[2] + height), "oak_leaves")
 
 
 class Ray:
