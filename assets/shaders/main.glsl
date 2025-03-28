@@ -267,18 +267,18 @@ void main() {
     // calculate distance dependant offsets
     float distancePrecision = max(initial.distance * initial.distance * 1e-6, 5e-5);
 
+    // calculate normal and uv texture coordinate for block
+    ivec3 voxelNormal = getNormal(initial.position, distancePrecision);
+    vec2 textureUv = getUvCoord(initial.position, voxelNormal);
+
+    // calculate base color
+    vec3 baseColor = texture(u_textureArray, vec3(textureUv, getLayerByVoxel(initial.voxelId, voxelNormal))).rgb;
+
     // cast shadow ray
     CollisionInfo shadow = castRay(initial.position - u_worldSun * distancePrecision * 2.f, -u_worldSun);
 
     // calculate pixel color
     if (initial.voxelId > 0) {
-        // calculate normal and uv texture coordinate for block
-        ivec3 voxelNormal = getNormal(initial.position, distancePrecision);
-        vec2 textureUv = getUvCoord(initial.position, voxelNormal);
-
-        // calculate base color
-        vec3 baseColor = texture(u_textureArray, vec3(textureUv, getLayerByVoxel(initial.voxelId, voxelNormal))).rgb;
-
         // normal shading
         // clamp values between 0.5 and 1.0
         baseColor *= max(0.5f, dot(voxelNormal, -u_worldSun));
