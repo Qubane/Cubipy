@@ -1,0 +1,11 @@
+{
+  "id": 8,
+  "texture": {
+    "X+": "oak_leaves",
+    "X-": "oak_leaves",
+    "Y+": "oak_leaves",
+    "Y-": "oak_leaves",
+    "Z+": "oak_leaves",
+    "Z-": "oak_leaves"
+  }
+}
