@@ -2,6 +2,7 @@
 Texture manager
 """
 
+
 import os
 import json
 import glob
