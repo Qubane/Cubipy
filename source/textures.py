@@ -74,7 +74,9 @@ class TextureManager:
         for config in configs:
             with open(config, "r", encoding="ascii") as f:
                 config_data = json.load(f)
-            self.block_texture_mapping[config_data["id"]] = config_data
+            self.block_texture_mapping[config_data["id"]] = {
+                "id": config_data["id"],
+                "texture": config_data["texture"]}
 
         # fill it with textures
         texture_data = b''
