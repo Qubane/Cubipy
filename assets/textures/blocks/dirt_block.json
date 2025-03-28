@@ -1,5 +1,7 @@
 {
   "id": 2,
+  "name": "dirt_block",
+  "ui_name": "dirt block",
   "texture": {
     "X+": "dirt_block",
     "X-": "dirt_block",

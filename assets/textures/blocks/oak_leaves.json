@@ -1,5 +1,7 @@
 {
   "id": 8,
+  "name": "oak_leaves",
+  "ui_name": "oak leaves",
   "texture": {
     "X+": "oak_leaves",
     "X-": "oak_leaves",

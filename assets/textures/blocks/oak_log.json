@@ -1,5 +1,7 @@
 {
   "id": 9,
+  "name": "oak_logs",
+  "ui_name": "oak logs",
   "texture": {
     "X+": "oak_log_side",
     "X-": "oak_log_side",

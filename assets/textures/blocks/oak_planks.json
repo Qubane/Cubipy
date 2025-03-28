@@ -1,5 +1,7 @@
 {
   "id": 10,
+  "name": "oak_planks",
+  "ui_name": "oak planks",
   "texture": {
     "X+": "oak_planks",
     "X-": "oak_planks",

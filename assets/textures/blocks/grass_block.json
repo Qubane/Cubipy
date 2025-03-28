@@ -1,5 +1,7 @@
 {
   "id": 1,
+  "name": "grass_block",
+  "ui_name": "grass block",
   "texture": {
     "X+": "grass_block_side",
     "X-": "grass_block_side",
