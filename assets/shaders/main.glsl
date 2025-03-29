@@ -8,10 +8,20 @@ const float CUBE_DIAG = pow(CHUNK_SIZE * CHUNK_SIZE * 3, 0.5f);
 
 
 // information about the point of ray collision
-struct CollisionInfo {
+struct RayData {
     int voxelId;        // collided voxel id
     vec3 position;      // collision position
     float distance;     // distance from ray origin to collision position
+};
+
+// calculated information about the pixel
+struct CollisionData {
+    RayData ray;    // ray data
+
+    vec4 color;     // pixel color
+    vec2 uv;        // pixel uv coordinate
+
+    ivec3 normal;   // voxel normal data
 };
 
 
@@ -182,7 +192,7 @@ int getLayerByVoxel(int voxelId, ivec3 norm) {
 // Uses `origin` as a starting position for the ray
 // Uses `direction` as a direction in which to cast ray
 // Returns `CollisionInfo`
-CollisionInfo castRay(vec3 origin, vec3 direction) {
+RayData castRay(vec3 origin, vec3 direction) {
     ivec3 rayPostion, rayStep;
     vec3 rayUnit, rayLength;
     float dist;
@@ -241,7 +251,7 @@ CollisionInfo castRay(vec3 origin, vec3 direction) {
         if (dist > CUBE_DIAG)
             break;
     }
-    return CollisionInfo(
+    return RayData(
         voxelId,
         origin + direction * dist,
         dist);
@@ -262,7 +272,7 @@ void main() {
     vec3 origin = u_playerPosition + direction * chunkDistance;
 
     // cast ray
-    CollisionInfo initial = castRay(origin, direction);
+    RayData initial = castRay(origin, direction);
 
     // calculate distance dependant offsets
     float distancePrecision = max(initial.distance * initial.distance * 1e-6, 5e-5);
@@ -275,7 +285,7 @@ void main() {
     vec3 baseColor = texture(u_textureArray, vec3(textureUv, getLayerByVoxel(initial.voxelId, voxelNormal))).rgb;
 
     // cast shadow ray
-    CollisionInfo shadow = castRay(initial.position - u_worldSun * distancePrecision * 2.f, -u_worldSun);
+    RayData shadow = castRay(initial.position - u_worldSun * distancePrecision * 2.f, -u_worldSun);
 
     // calculate pixel color
     if (initial.voxelId > 0) {
