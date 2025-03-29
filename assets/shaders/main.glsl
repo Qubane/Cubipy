@@ -313,10 +313,6 @@ void main() {
 
     // calculate pixel color
     if (pixelData.ray.voxelId > 0) {
-        // normal shading
-        // clamp values between 0.5 and 1.0
-        pixelData.color *= max(0.5f, dot(pixelData.normal, -u_worldSun));
-
         // write color
         fragColor = vec4(pixelData.color.rgb, 1.f);
     } else {
