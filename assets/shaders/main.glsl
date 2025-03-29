@@ -191,7 +191,7 @@ int getLayerByVoxel(int voxelId, ivec3 norm) {
 // ray caster
 // Uses `origin` as a starting position for the ray
 // Uses `direction` as a direction in which to cast ray
-// Returns `CollisionInfo`
+// Returns `RayData`
 RayData castRay(vec3 origin, vec3 direction) {
     ivec3 rayPostion, rayStep;
     vec3 rayUnit, rayLength;
@@ -258,6 +258,34 @@ RayData castRay(vec3 origin, vec3 direction) {
 }
 
 
+// calculates pixel from casting a ray
+// Uses `origin` as a starting position for the ray
+// Uses `direction` as a direction in which to cast ray
+// Returns `CollisionData`
+CollisionData calculatePixel(vec3 origin, vec3 direction) {
+    // cast ray
+    RayData ray = castRay(origin, direction);
+
+    // calculate distance dependant offsets
+    float distancePrecision = max(ray.distance * ray.distance * 1e-6, 5e-5);
+
+    // calculate normal and uv texture coordinate for block
+    ivec3 voxelNormal = getNormal(ray.position, distancePrecision);
+    vec2 textureUv = getUvCoord(ray.position, voxelNormal);
+
+    // calculate base color
+    vec4 baseColor = texture(u_textureArray, vec3(textureUv, getLayerByVoxel(ray.voxelId, voxelNormal)));
+
+    // return data
+    return CollisionData(
+        ray,        // ray data
+        baseColor,      // pixel color
+        textureUv,      // uv coordinate
+        voxelNormal     // voxel normal data
+    );
+}
+
+
 void main() {
     vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5f) / u_resolution.y;
 
@@ -271,39 +299,29 @@ void main() {
     // calculate ray origin
     vec3 origin = u_playerPosition + direction * chunkDistance;
 
-    // cast ray
-    RayData initial = castRay(origin, direction);
+    // calculate pixel data
+    CollisionData pixelData = calculatePixel(origin, direction);
 
     // calculate distance dependant offsets
-    float distancePrecision = max(initial.distance * initial.distance * 1e-6, 5e-5);
-
-    // calculate normal and uv texture coordinate for block
-    ivec3 voxelNormal = getNormal(initial.position, distancePrecision);
-    vec2 textureUv = getUvCoord(initial.position, voxelNormal);
-
-    // calculate base color
-    vec3 baseColor = texture(u_textureArray, vec3(textureUv, getLayerByVoxel(initial.voxelId, voxelNormal))).rgb;
+    float distancePrecision = max(pixelData.ray.distance * pixelData.ray.distance * 1e-6, 5e-5);
 
     // cast shadow ray
-    RayData shadow = castRay(initial.position - u_worldSun * distancePrecision * 2.f, -u_worldSun);
+    RayData shadow = castRay(pixelData.ray.position - u_worldSun * distancePrecision * 2.f, -u_worldSun);
 
     // calculate pixel color
-    if (initial.voxelId > 0) {
+    if (pixelData.ray.voxelId > 0) {
         // normal shading
         // clamp values between 0.5 and 1.0
-        baseColor *= max(0.5f, dot(voxelNormal, -u_worldSun));
+        pixelData.color *= max(0.5f, dot(pixelData.normal, -u_worldSun));
 
         // block is in shadow
         if (shadow.voxelId > 0) {
-            baseColor *= 0.3f;
+            pixelData.color *= 0.3f;
         }
 
         // write color
-        fragColor = vec4(baseColor, 1.f);
-
-//        fragColor = vec4(floor(collision.position) / CHUNK_SIZE, 1.f);
-//        fragColor = vec4((getNormal(collision.position) + vec3(1)) / 2, 1.f);
-        gl_FragDepth = (initial.distance + chunkDistance) * -1e6f;
+        fragColor = vec4(pixelData.color.rgb, 1.f);
+        gl_FragDepth = (pixelData.ray.distance + chunkDistance) * -1e6f;
     } else {
         fragColor = vec4(0.f);
         gl_FragDepth = 1.f;
