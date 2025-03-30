@@ -196,6 +196,42 @@ int getLayerByVoxel(int voxelId, ivec3 norm) {
 }
 
 
+// computes DDA
+DDAData computeDDA(vec3 origin, vec3 direction) {
+    DDAData dda;
+
+    // compute integer position and unit step
+    dda.rayPostion = ivec3(floor(origin));
+    dda.rayUnit = abs(1.f / direction);
+
+    // compute integer step and axial lengths
+    if (direction.x > 0) {
+        dda.rayStep.x = 1;
+        dda.rayLength.x = (float(dda.rayPostion.x) - origin.x + 1) * dda.rayUnit.x;
+    } else {
+        dda.rayStep.x = -1;
+        dda.rayLength.x = (origin.x - float(dda.rayPostion.x)) * dda.rayUnit.x;
+    }
+    if (direction.y > 0) {
+        dda.rayStep.y = 1;
+        dda.rayLength.y = (float(dda.rayPostion.y) - origin.y + 1) * dda.rayUnit.y;
+    } else {
+        dda.rayStep.y = -1;
+        dda.rayLength.y = (origin.y - float(dda.rayPostion.y)) * dda.rayUnit.y;
+    }
+    if (direction.z > 0) {
+        dda.rayStep.z = 1;
+        dda.rayLength.z = (float(dda.rayPostion.z) - origin.z + 1) * dda.rayUnit.z;
+    } else {
+        dda.rayStep.z = -1;
+        dda.rayLength.z = (origin.z - float(dda.rayPostion.z)) * dda.rayUnit.z;
+    }
+
+    // return
+    return dda;
+}
+
+
 // ray caster
 // Uses `origin` as a starting position for the ray
 // Uses `direction` as a direction in which to cast ray
