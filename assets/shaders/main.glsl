@@ -17,9 +17,12 @@ struct DDAData {
 
 // information about the point of ray collision
 struct RayCast {
-    int voxelId;        // collided voxel id
-    vec3 position;      // collision position
-    float distance;     // distance from ray origin to collision position
+    int voxelId;    // collided voxel id
+
+    vec3 pos;       // collision position
+    ivec3 ipos;     // integer voxel position
+
+    float len;      // distance from ray origin to collision position
 };
 
 // calculated information about the pixel
@@ -126,13 +129,30 @@ int getBlock(ivec3 pos) {
 
 // voxel normal vector
 // Uses `pos` as a position to check
-// Uses `offset` to define the accuracy of the check
+// Uses `ipos` as a position for the voxel that will be checked
 // Returns normal vector
-ivec3 getNormal(vec3 pos, float offset) {
-    return ivec3(
-        int(getBlock(ivec3(pos.x - offset, pos.y, pos.z)) > 0) - int(getBlock(ivec3(pos.x + offset, pos.y, pos.z)) > 0),
-        int(getBlock(ivec3(pos.x, pos.y - offset, pos.z)) > 0) - int(getBlock(ivec3(pos.x, pos.y + offset, pos.z)) > 0),
-        int(getBlock(ivec3(pos.x, pos.y, pos.z - offset)) > 0) - int(getBlock(ivec3(pos.x, pos.y, pos.z + offset)) > 0));
+ivec3 getNormal(vec3 pos, ivec3 ipos) {
+    // compute delta for collision position and block center
+    vec3 delta = pos - ipos - vec3(0.5f);
+    vec3 absDelta = abs(delta);
+
+    // find biggest axial length
+    if (absDelta.x > absDelta.y && absDelta.x > absDelta.z) {
+        if (delta.x > 0.f)
+            return ivec3(1, 0, 0);
+        else
+            return ivec3(-1, 0, 0);
+    } else if (absDelta.y > absDelta.z) {
+        if (delta.y > 0.f)
+            return ivec3(0, 1, 0);
+        else
+            return ivec3(0, -1, 0);
+    } else {
+        if (delta.z > 0.f)
+            return ivec3(0, 0, 1);
+        else
+            return ivec3(0, 0, -1);
+    }
 }
 
 
@@ -273,6 +293,7 @@ RayCast castRay(vec3 origin, vec3 direction) {
     return RayCast(
         voxelId,
         origin + direction * dist,
+        dda.rayPostion,
         dist);
 }
 
@@ -287,12 +308,9 @@ CollisionData castColorRay(vec3 origin, vec3 direction) {
 
     // if collision with block
     if (ray.voxelId > 0) {
-        // calculate distance dependant offsets
-        float distancePrecision = max(ray.distance * ray.distance * 1e-6, 5e-5);
-
         // calculate normal and uv texture coordinate for block
-        ivec3 voxelNormal = getNormal(ray.position, distancePrecision);
-        vec2 textureUv = getUvCoord(ray.position, voxelNormal);
+        ivec3 voxelNormal = getNormal(ray.pos, ray.ipos);
+        vec2 textureUv = getUvCoord(ray.pos, voxelNormal);
 
         // calculate base color
         vec4 baseColor = texture(u_textureArray, vec3(textureUv, getLayerByVoxel(ray.voxelId, voxelNormal)));
