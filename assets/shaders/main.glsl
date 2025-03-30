@@ -7,6 +7,14 @@
 const float CUBE_DIAG = pow(CHUNK_SIZE * CHUNK_SIZE * 3, 0.5f);
 
 
+// DDA struct
+struct DDAData {
+    ivec3 rayPostion;   // integer position
+    ivec3 rayStep;      // integer step
+    vec3 rayUnit;       // unit step size
+    vec3 rayLength;     // length for each axis
+};
+
 // information about the point of ray collision
 struct RayCast {
     int voxelId;        // collided voxel id
