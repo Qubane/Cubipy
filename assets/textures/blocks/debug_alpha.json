@@ -1,0 +1,13 @@
+{
+  "id": 255,
+  "name": "debug_alpha",
+  "ui_name": "debug alpha",
+  "texture": {
+    "X+": "debug_alpha",
+    "X-": "debug_alpha",
+    "Y+": "debug_alpha",
+    "Y-": "debug_alpha",
+    "Z+": "debug_alpha",
+    "Z-": "debug_alpha"
+  }
+}
