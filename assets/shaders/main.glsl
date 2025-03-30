@@ -237,58 +237,33 @@ DDAData computeDDA(vec3 origin, vec3 direction) {
 // Uses `direction` as a direction in which to cast ray
 // Returns `RayData`
 RayCast castRay(vec3 origin, vec3 direction) {
-    ivec3 rayPostion, rayStep;
-    vec3 rayUnit, rayLength;
+    // compute DDA variables
+    DDAData dda = computeDDA(origin, direction);
+
+    // distance
     float dist;
-
-    // calculate integer ray positon and unit step
-    rayPostion = ivec3(floor(origin));
-    rayUnit = abs(1.f / direction);
-
-    // calculate steps and starting lengths
-    if (direction.x > 0) {
-        rayStep.x = 1;
-        rayLength.x = (float(rayPostion.x) - origin.x + 1) * rayUnit.x;
-    } else {
-        rayStep.x = -1;
-        rayLength.x = (origin.x - float(rayPostion.x)) * rayUnit.x;
-    }
-    if (direction.y > 0) {
-        rayStep.y = 1;
-        rayLength.y = (float(rayPostion.y) - origin.y + 1) * rayUnit.y;
-    } else {
-        rayStep.y = -1;
-        rayLength.y = (origin.y - float(rayPostion.y)) * rayUnit.y;
-    }
-    if (direction.z > 0) {
-        rayStep.z = 1;
-        rayLength.z = (float(rayPostion.z) - origin.z + 1) * rayUnit.z;
-    } else {
-        rayStep.z = -1;
-        rayLength.z = (origin.z - float(rayPostion.z)) * rayUnit.z;
-    }
 
     // cast ray
     int voxelId;
     while (true) {
         // check for block collision
-        voxelId = getBlock(rayPostion);
+        voxelId = getBlock(dda.rayPostion);
         if (voxelId > 0)
             break;
 
         // make a step
-        if (rayLength.x < rayLength.y && rayLength.x < rayLength.z) {
-            rayPostion.x += rayStep.x;
-            dist = rayLength.x;
-            rayLength.x += rayUnit.x;
-        } else if (rayLength.y < rayLength.z) {
-            rayPostion.y += rayStep.y;
-            dist = rayLength.y;
-            rayLength.y += rayUnit.y;
+        if (dda.rayLength.x < dda.rayLength.y && dda.rayLength.x < dda.rayLength.z) {
+            dda.rayPostion.x += dda.rayStep.x;
+            dist = dda.rayLength.x;
+            dda.rayLength.x += dda.rayUnit.x;
+        } else if (dda.rayLength.y < dda.rayLength.z) {
+            dda.rayPostion.y += dda.rayStep.y;
+            dist = dda.rayLength.y;
+            dda.rayLength.y += dda.rayUnit.y;
         } else {
-            rayPostion.z += rayStep.z;
-            dist = rayLength.z;
-            rayLength.z += rayUnit.z;
+            dda.rayPostion.z += dda.rayStep.z;
+            dist = dda.rayLength.z;
+            dda.rayLength.z += dda.rayUnit.z;
         }
 
         // check for length; if too far then return
