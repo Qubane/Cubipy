@@ -9,20 +9,18 @@ const float CUBE_DIAG = pow(CHUNK_SIZE * CHUNK_SIZE * 3, 0.5f);
 
 // DDA struct
 struct DDAData {
-    ivec3 rayPostion;   // integer position
-    ivec3 rayStep;      // integer step
-    vec3 rayUnit;       // unit step size
-    vec3 rayLength;     // length for each axis
+    ivec3 ipos;     // integer position
+    ivec3 istep;    // integer step
+    vec3 ustep;     // unit step size
+    vec3 alen;      // length for each axis
 };
 
 // information about the point of ray collision
 struct RayCast {
     int voxelId;    // collided voxel id
-
     vec3 pos;       // collision position
-    ivec3 ipos;     // integer voxel position
-
     float len;      // distance from ray origin to collision position
+    DDAData dda;    // dda data
 };
 
 // calculated information about the pixel
@@ -221,30 +219,30 @@ DDAData computeDDA(vec3 origin, vec3 direction) {
     DDAData dda;
 
     // compute integer position and unit step
-    dda.rayPostion = ivec3(floor(origin));
-    dda.rayUnit = abs(1.f / direction);
+    dda.ipos = ivec3(floor(origin));
+    dda.ustep = abs(1.f / direction);
 
     // compute integer step and axial lengths
     if (direction.x > 0) {
-        dda.rayStep.x = 1;
-        dda.rayLength.x = (float(dda.rayPostion.x) - origin.x + 1) * dda.rayUnit.x;
+        dda.istep.x = 1;
+        dda.alen.x = (float(dda.ipos.x) - origin.x + 1) * dda.ustep.x;
     } else {
-        dda.rayStep.x = -1;
-        dda.rayLength.x = (origin.x - float(dda.rayPostion.x)) * dda.rayUnit.x;
+        dda.istep.x = -1;
+        dda.alen.x = (origin.x - float(dda.ipos.x)) * dda.ustep.x;
     }
     if (direction.y > 0) {
-        dda.rayStep.y = 1;
-        dda.rayLength.y = (float(dda.rayPostion.y) - origin.y + 1) * dda.rayUnit.y;
+        dda.istep.y = 1;
+        dda.alen.y = (float(dda.ipos.y) - origin.y + 1) * dda.ustep.y;
     } else {
-        dda.rayStep.y = -1;
-        dda.rayLength.y = (origin.y - float(dda.rayPostion.y)) * dda.rayUnit.y;
+        dda.istep.y = -1;
+        dda.alen.y = (origin.y - float(dda.ipos.y)) * dda.ustep.y;
     }
     if (direction.z > 0) {
-        dda.rayStep.z = 1;
-        dda.rayLength.z = (float(dda.rayPostion.z) - origin.z + 1) * dda.rayUnit.z;
+        dda.istep.z = 1;
+        dda.alen.z = (float(dda.ipos.z) - origin.z + 1) * dda.ustep.z;
     } else {
-        dda.rayStep.z = -1;
-        dda.rayLength.z = (origin.z - float(dda.rayPostion.z)) * dda.rayUnit.z;
+        dda.istep.z = -1;
+        dda.alen.z = (origin.z - float(dda.ipos.z)) * dda.ustep.z;
     }
 
     // return
@@ -267,23 +265,23 @@ RayCast castRay(vec3 origin, vec3 direction) {
     int voxelId;
     while (true) {
         // check for block collision
-        voxelId = getBlock(dda.rayPostion);
+        voxelId = getBlock(dda.ipos);
         if (voxelId > 0)
             break;
 
         // make a step
-        if (dda.rayLength.x < dda.rayLength.y && dda.rayLength.x < dda.rayLength.z) {
-            dda.rayPostion.x += dda.rayStep.x;
-            dist = dda.rayLength.x;
-            dda.rayLength.x += dda.rayUnit.x;
-        } else if (dda.rayLength.y < dda.rayLength.z) {
-            dda.rayPostion.y += dda.rayStep.y;
-            dist = dda.rayLength.y;
-            dda.rayLength.y += dda.rayUnit.y;
+        if (dda.alen.x < dda.alen.y && dda.alen.x < dda.alen.z) {
+            dda.ipos.x += dda.istep.x;
+            dist = dda.alen.x;
+            dda.alen.x += dda.ustep.x;
+        } else if (dda.alen.y < dda.alen.z) {
+            dda.ipos.y += dda.istep.y;
+            dist = dda.alen.y;
+            dda.alen.y += dda.ustep.y;
         } else {
-            dda.rayPostion.z += dda.rayStep.z;
-            dist = dda.rayLength.z;
-            dda.rayLength.z += dda.rayUnit.z;
+            dda.ipos.z += dda.istep.z;
+            dist = dda.alen.z;
+            dda.alen.z += dda.ustep.z;
         }
 
         // check for length; if too far then return
@@ -293,8 +291,8 @@ RayCast castRay(vec3 origin, vec3 direction) {
     return RayCast(
         voxelId,
         origin + direction * dist,
-        dda.rayPostion,
-        dist);
+        dist,
+        dda);
 }
 
 
@@ -309,7 +307,7 @@ CollisionData castColorRay(vec3 origin, vec3 direction) {
     // if collision with block
     if (ray.voxelId > 0) {
         // calculate normal and uv texture coordinate for block
-        ivec3 voxelNormal = getNormal(ray.pos, ray.ipos);
+        ivec3 voxelNormal = getNormal(ray.pos, ray.dda.ipos);
         vec2 textureUv = getUvCoord(ray.pos, voxelNormal);
 
         // calculate base color
@@ -332,6 +330,19 @@ CollisionData castColorRay(vec3 origin, vec3 direction) {
 }
 
 
+vec4 calculatePixel(vec3 origin, vec3 direction) {
+    vec3 curPosition = origin;
+    vec3 curDirection = direction;
+
+    vec4 cumColor;
+
+    CollisionData rayHit = castColorRay(curPosition, curDirection);
+    cumColor += rayHit.color;
+
+    return cumColor;
+}
+
+
 void main() {
     vec2 uv = (gl_FragCoord.xy - u_resolution.xy * 0.5f) / u_resolution.y;
 
@@ -346,13 +357,5 @@ void main() {
     vec3 origin = u_playerPosition + direction * chunkDistance;
 
     // calculate pixel data
-    CollisionData pixelData = castColorRay(origin, direction);
-
-    // calculate pixel color
-    if (pixelData.ray.voxelId > 0) {
-        // write color
-        fragColor = vec4(pixelData.color.rgb, 1.f);
-    } else {
-        fragColor = vec4(0.f);
-    }
+    fragColor = calculatePixel(origin, direction);
 }
