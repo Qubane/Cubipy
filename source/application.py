@@ -76,6 +76,10 @@ class Application(arcade.Window):
             print("Unable to load save file; generating new one instead...")
             self.world: World = WorldGen.generate_landscape(WORLD_SIZE // 2, 32)
             self.world.save(debug_world_name)
+
+        self.world.set((WORLD_CENTER, WORLD_CENTER, WORLD_CENTER + 4), "debug_alpha")
+        self.world.set((WORLD_CENTER+1, WORLD_CENTER, WORLD_CENTER + 4), "debug_alpha")
+
         self.world_buffer = self.ctx.buffer(data=self.world.voxels, usage="static")
 
     def load_shaders(self):
