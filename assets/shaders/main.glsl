@@ -254,7 +254,7 @@ DDAData computeDDA(vec3 origin, vec3 direction) {
 // Uses `origin` as a starting position for the ray
 // Uses `direction` as a direction in which to cast ray
 // Returns `RayData`
-RayCast castRay(vec3 origin, vec3 direction) {
+RayCast castRay(vec3 origin, vec3 direction, ivec3 skipPos) {
     // compute DDA variables
     DDAData dda = computeDDA(origin, direction);
 
@@ -264,10 +264,15 @@ RayCast castRay(vec3 origin, vec3 direction) {
     // cast ray
     int voxelId;
     while (true) {
-        // check for block collision
-        voxelId = getBlock(dda.ipos);
-        if (voxelId > 0)
-            break;
+        // if not skipPos
+        if (dda.ipos != skipPos) {
+            // fetch block
+            voxelId = getBlock(dda.ipos);
+
+            // if collided
+            if (voxelId > 0)
+                break;
+        }
 
         // make a step
         if (dda.alen.x < dda.alen.y && dda.alen.x < dda.alen.z) {
@@ -300,9 +305,9 @@ RayCast castRay(vec3 origin, vec3 direction) {
 // Uses `origin` as a starting position for the ray
 // Uses `direction` as a direction in which to cast ray
 // Returns `CollisionData`
-CollisionData castColorRay(vec3 origin, vec3 direction) {
+CollisionData castColorRay(vec3 origin, vec3 direction, ivec3 skipPos) {
     // cast ray
-    RayCast ray = castRay(origin, direction);
+    RayCast ray = castRay(origin, direction, skipPos);
 
     // if collision with block
     if (ray.voxelId > 0) {
@@ -335,9 +340,25 @@ vec4 calculatePixel(vec3 origin, vec3 direction) {
     vec3 curDirection = direction;
 
     vec4 cumColor;
+    CollisionData rayHit;
+    for (int i = 0; i < 10; i++) {
+        // cast ray from curPosition in curDirection
+        rayHit = castColorRay(curPosition, curDirection, rayHit.ray.dda.ipos);
 
-    CollisionData rayHit = castColorRay(curPosition, curDirection);
-    cumColor += rayHit.color;
+        // if hit sky
+        if (rayHit.ray.voxelId == -1)
+            break;
+
+        // accumulate color
+        cumColor += rayHit.color * (1.f - cumColor.a);
+
+        // if opaque
+        if (cumColor.a >= 1.f)
+            break;
+
+        // compute next position
+        curPosition = rayHit.ray.pos;
+    }
 
     return cumColor;
 }
