@@ -339,7 +339,10 @@ vec4 calculatePixel(vec3 origin, vec3 direction) {
     vec3 curPosition = origin;
     vec3 curDirection = direction;
 
-    vec4 cumColor;
+    // accumulated color; calculated color
+    vec4 cumColor, baseColor;
+
+    // ray collision
     CollisionData rayHit;
     for (int i = 0; i < 10; i++) {
         // cast ray from curPosition in curDirection
@@ -349,8 +352,14 @@ vec4 calculatePixel(vec3 origin, vec3 direction) {
         if (rayHit.ray.voxelId == -1)
             break;
 
+        // calculate color
+        baseColor = rayHit.color;
+
+        // normal shading
+        baseColor.rgb *= max(0.5f, dot(rayHit.normal, -u_worldSun));
+
         // accumulate color
-        cumColor += rayHit.color * (1.f - cumColor.a);
+        cumColor += baseColor * (1.f - cumColor.a);
 
         // if opaque
         if (cumColor.a >= 1.f)
