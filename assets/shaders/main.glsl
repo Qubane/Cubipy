@@ -359,49 +359,7 @@ vec4 calculatePixel(vec3 origin, vec3 direction) {
         baseColor.rgb *= max(0.5f, dot(rayHit.normal, -u_worldSun));
 
         // accumulate color
-        cumColor += baseColor * (1.f - cumColor.a);
-
-        // if opaque
-        if (cumColor.a >= 1.f)
-            break;
-
-        // compute next position
-        curPosition = rayHit.ray.pos;
-    }
-
-    return cumColor;
-}
-
-
-vec4 calculatePixel_0(vec3 origin, vec3 direction) {
-    vec3 curPosition = origin;
-    vec3 curDirection = direction;
-
-    // accumulated color; calculated color
-    vec4 cumColor, baseColor;
-
-    // ray collision
-    CollisionData rayHit;
-    for (int i = 0; i < 10; i++) {
-        // cast ray from curPosition in curDirection
-        rayHit = castColorRay(curPosition, curDirection, rayHit.ray.dda.ipos);
-
-        // if hit sky
-        if (rayHit.ray.voxelId == -1)
-            break;
-
-        // calculate color
-        baseColor = rayHit.color;
-
-        // normal shading
-        baseColor.rgb *= max(0.5f, dot(rayHit.normal, -u_worldSun));
-
-        // cast shadow
-        vec4 collisionColor = calculatePixel(rayHit.ray.pos - curDirection * 1e-3, -u_worldSun);
-        baseColor.rgb *= max(0.3f, 1.f - collisionColor.a);
-
-        // accumulate color
-        cumColor += baseColor * (1.f - cumColor.a);
+        cumColor += baseColor * (1.f - cumColor.a) * baseColor.a;
 
         // if opaque
         if (cumColor.a >= 1.f)
@@ -429,5 +387,5 @@ void main() {
     vec3 origin = u_playerPosition + direction * chunkDistance;
 
     // calculate pixel data
-    fragColor = calculatePixel_0(origin, direction);
+    fragColor = calculatePixel(origin, direction);
 }
