@@ -336,6 +336,44 @@ CollisionData castColorRay(vec3 origin, vec3 direction, ivec3 skipPos) {
 }
 
 
+vec4 _calculatePixel0(vec3 origin, vec3 direction) {
+    vec3 curPosition = origin;
+    vec3 curDirection = direction;
+
+    // accumulated color; calculated color
+    vec4 cumColor, baseColor;
+
+    // ray collision
+    CollisionData rayHit;
+    for (int i = 0; i < ALPHA_DEPTH; i++) {
+        // cast ray from curPosition in curDirection
+        rayHit = castColorRay(curPosition, curDirection, rayHit.ray.dda.ipos);
+
+        // if hit sky
+        if (rayHit.ray.voxelId == -1)
+            break;
+
+        // calculate color
+        baseColor = rayHit.color;
+
+        // normal shading
+        baseColor.rgb *= max(0.5f, dot(rayHit.normal, -u_worldSun));
+
+        // accumulate color
+        cumColor += baseColor * (1.f - cumColor.a) * baseColor.a;
+
+        // if opaque
+        if (cumColor.a >= 1.f)
+            break;
+
+        // compute next position
+        curPosition = rayHit.ray.pos;
+    }
+
+    return cumColor;
+}
+
+
 vec4 calculatePixel(vec3 origin, vec3 direction) {
     vec3 curPosition = origin;
     vec3 curDirection = direction;
@@ -358,6 +396,10 @@ vec4 calculatePixel(vec3 origin, vec3 direction) {
 
         // normal shading
         baseColor.rgb *= max(0.5f, dot(rayHit.normal, -u_worldSun));
+
+        // shadows
+        vec4 shadow = _calculatePixel0(rayHit.ray.pos - curDirection * 1e-4, -u_worldSun);
+        baseColor.rgb *= max(0.3f, 1.f - shadow.a);
 
         // accumulate color
         cumColor += baseColor * (1.f - cumColor.a) * baseColor.a;
