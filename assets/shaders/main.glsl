@@ -1,6 +1,7 @@
 #version 430
 #define CHUNK_SIZE 256
 #define INDEX_MASK 255
+#define ALPHA_DEPTH 16
 
 
 // chunk cube diagonal
@@ -344,7 +345,7 @@ vec4 calculatePixel(vec3 origin, vec3 direction) {
 
     // ray collision
     CollisionData rayHit;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < ALPHA_DEPTH; i++) {
         // cast ray from curPosition in curDirection
         rayHit = castColorRay(curPosition, curDirection, rayHit.ray.dda.ipos);
 
